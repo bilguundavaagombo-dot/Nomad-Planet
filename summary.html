@@ -2,12 +2,12 @@
 <html lang="mn">
 <head>
     <meta charset="UTF-8">
-    <title>Master Tour Summary (All Data)</title>
+    <title>Нэгдсэн Тайлан (Summary)</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f6; padding: 20px; color: #333; }
         .container { max-width: 100%; margin: 0 auto; }
         
-        /* NAV */
+        /* Navigation */
         .nav-bar { display: flex; gap: 5px; margin-bottom: 20px; flex-wrap: wrap; }
         .nav-btn { padding: 8px 15px; text-decoration: none; color: white; background: #7f8c8d; border-radius: 4px; font-weight: bold; font-size: 12px; }
         .nav-btn.active { background: #2c3e50; border: 2px solid #f1c40f; } 
@@ -16,26 +16,27 @@
         .row { display: flex; align-items: flex-end; gap: 10px; margin-bottom: 20px; }
         
         select { padding: 10px; font-size: 16px; border: 2px solid #27ae60; border-radius: 4px; width: 300px; }
-        .btn-copy { background: #27ae60; color: white; padding: 10px 20px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        .btn-copy { background: #27ae60; color: white; padding: 10px 20px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 14px; }
         .btn-copy:hover { background: #2ecc71; }
 
-        /* DATA TABLE */
+        /* GOOGLE SHEETS STYLE TABLE */
         table { 
             width: 100%; 
             border-collapse: collapse; 
             background: white; 
-            font-size: 11px; /* Small font to fit everything */
+            font-size: 12px; 
             font-family: Arial, sans-serif; 
+            border: 1px solid #000;
         }
         th, td { 
-            border: 1px solid #999; 
-            padding: 6px; 
+            border: 1px solid #000; /* Solid borders for Excel/Sheets */
+            padding: 8px; 
             text-align: left; 
             vertical-align: top;
         }
         th { background-color: #dcdcdc; font-weight: bold; text-transform: uppercase; }
         
-        /* Visual Indicators for Categories */
+        /* Category Colors on Left Border */
         .row-hotel { border-left: 5px solid #2980b9; }
         .row-camp { border-left: 5px solid #e67e22; }
         .row-rest { border-left: 5px solid #e74c3c; }
@@ -44,9 +45,9 @@
         .row-trans { border-left: 5px solid #2c3e50; }
         .row-nomad { border-left: 5px solid #795548; }
 
-        /* Utility */
-        .money { font-weight: bold; color: #2c3e50; }
-        .sub-text { color: #666; font-size: 10px; display: block; }
+        /* Footer Totals */
+        tfoot tr td { background-color: #f9e79f; font-weight: bold; font-size: 14px; border-top: 2px solid #000; }
+        .money-cell { text-align: right; }
     </style>
 </head>
 <body>
@@ -66,14 +67,11 @@
     <div class="card">
         <div class="row">
             <div>
-                <label style="display:block; font-weight:bold; margin-bottom:5px;">Аялал Сонгох (Select Trip):</label>
+                <label style="display:block; font-weight:bold; margin-bottom:5px;">Аялал Сонгох:</label>
                 <select id="tripSelect" onchange="generateReport()"><option value="">-- Аялал сонгоно уу --</option></select>
             </div>
             <div>
-                <button class="btn-copy" onclick="copyToClipboard()">COPY TO GOOGLE SHEETS</button>
-            </div>
-            <div style="margin-left: auto; font-size: 18px; font-weight: bold;">
-                Total Trip Cost: <span id="grandTotalDisplay">0</span> ₮
+                <button class="btn-copy" onclick="copyAndOpenSheets()">GOOGLE SHEETS ХУУЛАХ</button>
             </div>
         </div>
 
@@ -81,28 +79,40 @@
             <table id="masterTable">
                 <thead>
                     <tr>
-                        <th style="width:80px;">Date (Огноо)</th>
-                        <th style="width:100px;">Category</th>
-                        <th style="width:150px;">Service Name (Нэр)</th>
-                        <th>Accommodation / Route / Menu (Дэлгэрэнгүй)</th>
-                        <th>Pax (Хүмүүс)</th>
-                        <th>Food / Meals (Хоол)</th>
-                        <th>Extras / Guide / Info (Бусад)</th>
-                        <th>Total Cost (Дүн)</th>
-                        <th>Status (Нэх/Төл)</th>
+                        <th style="width:90px;">Огноо</th>
+                        <th style="width:120px;">Төрөл</th>
+                        <th style="width:150px;">Үйлчилгээний Нэр</th>
+                        <th>Дэлгэрэнгүй (Өрөө / Меню / Маршрут)</th>
+                        <th>Хүний Тоо</th>
+                        <th>Хоолны Мэдээлэл</th>
+                        <th>Бусад / Хөтөч</th>
+                        <th>Нийт Дүн</th>
+                        <th>Төлбөрийн Байдал</th>
                     </tr>
                 </thead>
                 <tbody id="tbody"></tbody>
+                <tfoot id="tfoot" style="display:none;">
+                    <tr>
+                        <td colspan="7" style="text-align:right;">АЯЛЛЫН НЭР: <span id="footerTripName"></span> | НИЙТ ЗАРДАЛ:</td>
+                        <td class="money-cell" id="footerTotal">0</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td colspan="7" style="text-align:right;">ТӨЛӨГДСӨН ДҮН:</td>
+                        <td class="money-cell" id="footerPaid" style="color:green;">0</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
             </table>
         </div>
     </div>
 </div>
 
 <script>
-    // --- LOAD ALL DATA ---
+    // --- LOAD DATA ---
     let trips = JSON.parse(localStorage.getItem('np_trips')) || [];
 
-    // Helper to format numbers
+    // Helper: Number Format
     const fmt = (num) => num ? parseInt(num).toLocaleString() : '0';
 
     window.onload = function() {
@@ -113,169 +123,193 @@
     function generateReport() {
         const tripName = document.getElementById('tripSelect').value;
         const tbody = document.getElementById('tbody');
+        const tfoot = document.getElementById('tfoot');
+        
         tbody.innerHTML = '';
         let grandTotal = 0;
+        let paidTotal = 0;
         let allItems = [];
 
-        if(!tripName) return;
+        if(!tripName) {
+            tfoot.style.display = 'none';
+            return;
+        }
 
-        // --- 1. GATHER HOTEL DATA ---
+        // --- 1. HOTEL ---
         let hotels = JSON.parse(localStorage.getItem('np_hotel_pro_v3')) || [];
         hotels.forEach(x => {
             if(x.trip === tripName) {
-                // Build Room String
                 let roomStr = "";
-                if(x.rooms) x.rooms.forEach(r => roomStr += `${r.type} x${r.count} (${fmt(r.price)}), `);
+                if(x.rooms) x.rooms.forEach(r => roomStr += `${r.type} ${r.count}ш (${fmt(r.price)}), `);
                 
-                // Build Food String
                 let foodStr = "";
-                if(x.bfQty>0) foodStr += `BF: ${x.bfQty}x${fmt(x.bfPrice)} <br>`;
-                if(x.lnQty>0) foodStr += `LN: ${x.lnQty}x${fmt(x.lnPrice)} <br>`;
-                if(x.dnQty>0) foodStr += `DN: ${x.dnQty}x${fmt(x.dnPrice)}`;
+                if(x.bfQty>0) foodStr += `Өглөө: ${x.bfQty}ш x${fmt(x.bfPrice)} <br>`;
+                if(x.lnQty>0) foodStr += `Өдөр: ${x.lnQty}ш x${fmt(x.lnPrice)} <br>`;
+                if(x.dnQty>0) foodStr += `Орой: ${x.dnQty}ш x${fmt(x.dnPrice)}`;
+
+                let cost = parseFloat(x.grandTotal.replace(/,/g,'')) || 0;
+                grandTotal += cost;
+                if(x.paidDate) paidTotal += cost;
 
                 allItems.push({
                     date: x.checkIn,
-                    cat: "HOTEL",
+                    cat: "ЗОЧИД БУУДАЛ",
                     css: "row-hotel",
                     name: x.hotel,
                     desc: roomStr,
-                    pax: `Total Pax: ${x.paxCount} <br> Nights: ${x.nights}`,
+                    pax: `Нийт: ${x.paxCount} <br> Хоног: ${x.nights}`,
                     food: foodStr,
-                    extra: `${x.extraName || '-'} (${fmt(x.extraPrice)}) <br> Disc: -${fmt(x.discount)}`,
-                    cost: x.grandTotal,
-                    status: `Inv:${x.invDate} <br> Pd:${x.paidDate}`
+                    extra: `${x.extraName || '-'} (${fmt(x.extraPrice)}) <br> Хөнгөлөлт: -${fmt(x.discount)}`,
+                    cost: cost,
+                    status: `Нэх: ${x.invDate} <br> Төл: ${x.paidDate}`
                 });
-                grandTotal += parseFloat(x.grandTotal.replace(/,/g,'')) || 0;
             }
         });
 
-        // --- 2. GATHER CAMP DATA ---
+        // --- 2. CAMP ---
         let camps = JSON.parse(localStorage.getItem('np_camp_compact_v2')) || [];
         camps.forEach(x => {
             if(x.trip === tripName) {
-                let foodStr = `BF:${x.bfQty} / LN:${x.lnQty} / DN:${x.dnQty} <br> (Unit Prices Hidden)`; // Simplified as per camp logic
+                let foodStr = `Өглөө: ${x.bfQty} / Өдөр: ${x.lnQty} / Орой: ${x.dnQty}`;
                 
+                let cost = parseFloat(x.grandTotal.replace(/,/g,'')) || 0;
+                grandTotal += cost;
+                if(x.paidDate) paidTotal += cost;
+
                 allItems.push({
                     date: x.checkIn,
-                    cat: "CAMP",
+                    cat: "БАЗА",
                     css: "row-camp",
                     name: x.camp,
                     desc: `${x.accomType} (${x.roomConfig})`,
-                    pax: `For: ${x.forAdlQty}A/${x.forChdQty}C <br> Mon: ${x.monAdlQty}A`,
+                    pax: `Гадаад: ${x.forAdlQty}том/${x.forChdQty}хүү <br> Монгол: ${x.monAdlQty}том`,
                     food: foodStr,
                     extra: `${x.extraName || '-'} (${fmt(x.extraPrice)})`,
-                    cost: x.grandTotal,
-                    status: `Inv:${x.invDate} <br> Pd:${x.paidDate}`
+                    cost: cost,
+                    status: `Нэх: ${x.invDate} <br> Төл: ${x.paidDate}`
                 });
-                grandTotal += parseFloat(x.grandTotal.replace(/,/g,'')) || 0;
             }
         });
 
-        // --- 3. GATHER RESTAURANT DATA ---
+        // --- 3. RESTAURANT ---
         let rests = JSON.parse(localStorage.getItem('np_restaurant_v1')) || [];
         rests.forEach(x => {
             if(x.trip === tripName) {
+                let cost = parseFloat(x.grandTotal.replace(/,/g,'')) || 0;
+                grandTotal += cost;
+                if(x.paidDate) paidTotal += cost;
+
                 allItems.push({
                     date: x.date,
-                    cat: "RESTAURANT",
+                    cat: "РЕСТОРАН",
                     css: "row-rest",
                     name: x.restaurant,
-                    desc: `Menu: ${x.menuName} (${fmt(x.menuPrice)})`,
-                    pax: `F: ${x.paxForeign} <br> M: ${x.paxMongol}`,
-                    food: "Menu Order",
-                    extra: `Guide: ${x.guideName} <br> Phone: ${x.guidePhone}`,
-                    cost: x.grandTotal,
-                    status: `Inv:${x.invDate} <br> Pd:${x.paidDate}`
+                    desc: `Меню: ${x.menuName} (${fmt(x.menuPrice)})`,
+                    pax: `Гадаад: ${x.paxForeign} <br> Монгол: ${x.paxMongol}`,
+                    food: "Меню захиалга",
+                    extra: `Орчуулагч: ${x.guideName} <br> Утас: ${x.guidePhone}`,
+                    cost: cost,
+                    status: `Нэх: ${x.invDate} <br> Төл: ${x.paidDate}`
                 });
-                grandTotal += parseFloat(x.grandTotal.replace(/,/g,'')) || 0;
             }
         });
 
-        // --- 4. GATHER GUEST HOUSE DATA ---
+        // --- 4. GUEST HOUSE ---
         let ghs = JSON.parse(localStorage.getItem('np_gh_bookings')) || [];
         ghs.forEach(x => {
             if(x.trip === tripName) {
-                let foodStr = `BF:${x.bfQty} / LN:${x.lnQty} / DN:${x.dnQty}`;
+                let cost = parseFloat(x.grandTotal.replace(/,/g,'')) || 0;
+                grandTotal += cost;
+                if(x.paidDate) paidTotal += cost;
+
                 allItems.push({
                     date: x.checkIn,
-                    cat: "GUEST HOUSE",
+                    cat: "ГЭСТ ХАУС",
                     css: "row-gh",
                     name: x.gh,
                     desc: `${x.accomType} (${x.roomConfig})`,
-                    pax: `F: ${x.forAdlQty}/${x.forChdQty} <br> M: ${x.monAdlQty}`,
-                    food: foodStr,
+                    pax: `Гад: ${x.forAdlQty}/${x.forChdQty} <br> Мон: ${x.monAdlQty}`,
+                    food: `Өглөө:${x.bfQty} / Өдөр:${x.lnQty} / Орой:${x.dnQty}`,
                     extra: `${x.extraName} (${fmt(x.extraPrice)})`,
-                    cost: x.grandTotal,
-                    status: `Inv:${x.invDate} <br> Pd:${x.paidDate}`
+                    cost: cost,
+                    status: `Нэх: ${x.invDate} <br> Төл: ${x.paidDate}`
                 });
-                grandTotal += parseFloat(x.grandTotal.replace(/,/g,'')) || 0;
             }
         });
 
-        // --- 5. GATHER ATTRACTION DATA ---
+        // --- 5. ATTRACTION ---
         let attrs = JSON.parse(localStorage.getItem('np_attraction_v2')) || [];
         attrs.forEach(x => {
             if(x.trip === tripName) {
+                let cost = parseFloat(x.total.replace(/,/g,'')) || 0;
+                grandTotal += cost;
+                if(x.paid) paidTotal += cost;
+
                 allItems.push({
                     date: x.date,
-                    cat: "ATTRACTION",
+                    cat: "ҮЗВЭР",
                     css: "row-attr",
                     name: x.attr,
-                    desc: "Entry Fee",
-                    pax: `Adl: ${x.adlQty} x${fmt(x.adlPrice)} <br> Chd: ${x.chdQty} x${fmt(x.chdPrice)}`,
+                    desc: "Тасалбар",
+                    pax: `Том: ${x.adlQty} x${fmt(x.adlPrice)} <br> Хүүхэд: ${x.chdQty} x${fmt(x.chdPrice)}`,
                     food: "-",
-                    extra: `Guide: ${x.guide} <br> ${x.phone}`,
-                    cost: x.total,
-                    status: `Inv:${x.inv} <br> Pd:${x.paid}`
+                    extra: `Орчуулагч: ${x.guide} <br> Утас: ${x.phone}`,
+                    cost: cost,
+                    status: `Нэх: ${x.inv} <br> Төл: ${x.paid}`
                 });
-                grandTotal += parseFloat(x.total.replace(/,/g,'')) || 0;
             }
         });
 
-        // --- 6. GATHER TRANSPORT DATA ---
+        // --- 6. TRANSPORT ---
         let trans = JSON.parse(localStorage.getItem('np_transport_v2')) || [];
         trans.forEach(x => {
             if(x.trip === tripName) {
+                let cost = parseFloat(x.total.replace(/,/g,'')) || 0;
+                grandTotal += cost;
+                if(x.paid) paidTotal += cost;
+
                 allItems.push({
                     date: x.date,
-                    cat: "TRANSPORT",
+                    cat: "ТЭЭВЭР",
                     css: "row-trans",
                     name: x.trans,
                     desc: `${x.type} - ${x.route}`,
-                    pax: `Adl: ${x.adlQty} <br> Chd: ${x.chdQty}`,
+                    pax: `Том: ${x.adlQty} <br> Хүүхэд: ${x.chdQty}`,
                     food: "-",
-                    extra: `Driver: ${x.guideName} (${x.guidePhone}) <br> <b>Passengers:</b> <br> ${x.paxList.substring(0,50)}...`,
-                    cost: x.total,
-                    status: `Inv:${x.inv} <br> Pd:${x.paid}`
+                    extra: `Жолооч: ${x.guideName} (${x.guidePhone}) <br> <b>Зорчигчид:</b> <br> ${x.paxList}`,
+                    cost: cost,
+                    status: `Нэх: ${x.inv} <br> Төл: ${x.paid}`
                 });
-                grandTotal += parseFloat(x.total.replace(/,/g,'')) || 0;
             }
         });
 
-        // --- 7. GATHER NOMAD DATA ---
+        // --- 7. NOMAD ---
         let nomads = JSON.parse(localStorage.getItem('np_nomad_v2')) || [];
         nomads.forEach(x => {
             if(x.trip === tripName) {
-                let horseStr = `Horse: ${parseInt(x.horsePax)+parseInt(x.horseGuide)} pax (${x.horseDays} days)`;
-                let camelStr = (x.camelPax > 0) ? `<br>Camel: ${x.camelPax} pax` : "";
-                
+                let cost = parseFloat(x.total.replace(/,/g,'')) || 0;
+                grandTotal += cost;
+                if(x.paid) paidTotal += cost;
+
+                let horseStr = `Морь: ${parseInt(x.horsePax)+parseInt(x.horseGuide)} хүн (${x.horseDays} хоног)`;
+                let camelStr = (x.camelPax > 0) ? `<br>Тэмээ: ${x.camelPax} хүн` : "";
+
                 allItems.push({
                     date: x.inDate,
-                    cat: "NOMAD",
+                    cat: "МАЛЧИН АЙЛ",
                     css: "row-nomad",
                     name: x.nomad,
-                    desc: "Ger Stay (" + x.days + " days)",
-                    pax: `For: ${x.paxF} <br> Mon: ${x.paxM}`,
-                    food: `Food Cost: ${fmt(x.foodPrice)}`,
-                    extra: horseStr + camelStr + `<br> Extra: ${x.extraName}`,
-                    cost: x.total,
-                    status: `Inv:${x.inv} <br> Pd:${x.paid}`
+                    desc: "Гэрт байрлах (" + x.days + " хоног)",
+                    pax: `Жуулчин: ${x.paxF} <br> Монгол: ${x.paxM}`,
+                    food: `Хоолны зардал: ${fmt(x.foodPrice)}`,
+                    extra: horseStr + camelStr + `<br> Бусад: ${x.extraName}`,
+                    cost: cost,
+                    status: `Нэх: ${x.inv} <br> Төл: ${x.paid}`
                 });
-                grandTotal += parseFloat(x.total.replace(/,/g,'')) || 0;
             }
         });
 
-        // --- RENDER ALL ---
+        // --- SORT & RENDER ---
         allItems.sort((a, b) => (a.date > b.date) ? 1 : -1);
 
         allItems.forEach(row => {
@@ -288,24 +322,37 @@
                 <td>${row.pax}</td>
                 <td>${row.food}</td>
                 <td>${row.extra}</td>
-                <td class="money">${row.cost}</td>
-                <td class="sub-text">${row.status}</td>
+                <td class="money-cell" style="font-weight:bold;">${row.cost.toLocaleString()}</td>
+                <td>${row.status}</td>
             `;
             tbody.appendChild(tr);
         });
 
-        document.getElementById('grandTotalDisplay').innerText = grandTotal.toLocaleString();
+        // --- UPDATE FOOTER ---
+        document.getElementById('footerTripName').innerText = tripName.toUpperCase();
+        document.getElementById('footerTotal').innerText = grandTotal.toLocaleString() + " ₮";
+        document.getElementById('footerPaid').innerText = paidTotal.toLocaleString() + " ₮";
+        tfoot.style.display = 'table-footer-group';
     }
 
-    function copyToClipboard() {
+    function copyAndOpenSheets() {
         const table = document.getElementById('masterTable');
+        
+        // Select and Copy
         const range = document.createRange();
         range.selectNode(table);
         window.getSelection().removeAllRanges();
         window.getSelection().addRange(range);
-        document.execCommand('copy');
+        
+        try {
+            document.execCommand('copy');
+            // Open Google Sheets
+            window.open('https://sheets.google.com/create', '_blank');
+        } catch (err) {
+            alert('Copy failed. Please manually select and copy.');
+        }
+        
         window.getSelection().removeAllRanges();
-        alert('Copied! Open Google Sheets and press Ctrl+V');
     }
 </script>
 
