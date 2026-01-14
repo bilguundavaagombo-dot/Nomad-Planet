@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <title>Master Tour Summary</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; padding: 20px; color: #333; }
+        .container { max-width: 100%; margin: 0 auto; }
+        
+        /* Navigation */
+        .nav-bar { display: flex; gap: 5px; margin-bottom: 20px; flex-wrap: wrap; }
+        .nav-btn { padding: 8px 15px; text-decoration: none; color: white; background: #7f8c8d; border-radius: 4px; font-weight: bold; font-size: 12px; }
+        .nav-btn.active { background: #2c3e50; border: 2px solid #f1c40f; } 
+
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .row { display: flex; align-items: flex-end; gap: 10px; margin-bottom: 20px; }
+        
+        select { padding: 10px; font-size: 16px; border: 2px solid #27ae60; border-radius: 4px; width: 300px; }
+        .btn-copy { background: #27ae60; color: white; padding: 10px 20px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        .btn-copy:hover { background: #2ecc71; }
+
+        /* GOOGLE SHEETS READY TABLE */
+        table { width: 100%; border-collapse: collapse; background: white; font-size: 12px; font-family: Arial, sans-serif; }
+        th, td { border: 1px solid #000; padding: 5px; text-align: left; } /* Solid black borders for Excel/Sheets */
+        th { background-color: #dcdcdc; font-weight: bold; }
+        
+        /* Category Colors */
+        .cat-hotel { border-left: 5px solid #2980b9; }
+        .cat-camp { border-left: 5px solid #e67e22; }
+        .cat-rest { border-left: 5px solid #e74c3c; }
+        .cat-gh { border-left: 5px solid #8e44ad; }
+        .cat-attr { border-left: 5px solid #16a085; }
+        .cat-trans { border-left: 5px solid #2c3e50; }
+        .cat-nomad { border-left: 5px solid #795548; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="nav-bar">
+        <a href="index.html" class="nav-btn">1. HOTEL</a> <a href="camp.html" class="nav-btn">2. CAMP</a> 
+        <a href="restaurant.html" class="nav-btn">3. RESTAURANT</a> <a href="guesthouse.html" class="nav-btn">4. GUEST HOUSE</a> 
+        <a href="attraction.html" class="nav-btn">5. ҮЗВЭР</a> <a href="transport.html" class="nav-btn">6. ТЭЭВЭР</a> 
+        <a href="nomad.html" class="nav-btn">7. МАЛЧИН</a> <a href="summary.html" class="nav-btn active">8. НЭГДСЭН ДҮН</a>
+    </div>
+
+    <div class="card">
+        <div class="row">
+            <div>
+                <label style="display:block; font-weight:bold; margin-bottom:5px;">Аялал Сонгох (Select Trip):</label>
+                <select id="tripSelect" onchange="generateReport()"><option value="">-- Аялал сонгоно уу --</option></select>
+            </div>
+            <div>
+                <button class="btn-copy" onclick="copyToClipboard()">COPY TO GOOGLE SHEETS</button>
+            </div>
+            <div style="margin-left: auto; font-size: 18px; font-weight: bold;">
+                Total Cost: <span id="grandTotalDisplay">0</span> ₮
+            </div>
+        </div>
+
+        <div id="tableContainer">
+            <table id="masterTable">
+                <thead>
+                    <tr>
+                        <th>Date (Огноо)</th>
+                        <th>Category (Төрөл)</th>
+                        <th>Service Name (Үйлчилгээний нэр)</th>
+                        <th>Details (Дэлгэрэнгүй)</th>
+                        <th>Pax (Хүн)</th>
+                        <th>Total Cost (Нийт дүн)</th>
+                        <th>Paid Date (Төлсөн)</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Load ALL Data Sources
+    let trips = JSON.parse(localStorage.getItem('np_trips')) || [];
+    
+    // Data Keys mapping
+    const sources = [
+        { key: 'np_hotel_pro_v3', type: 'HOTEL', class: 'cat-hotel' },
+        { key: 'np_camp_compact_v2', type: 'CAMP', class: 'cat-camp' },
+        { key: 'np_restaurant_v1', type: 'RESTAURANT', class: 'cat-rest' },
+        { key: 'np_gh_bookings', type: 'GUEST HOUSE', class: 'cat-gh' },
+        { key: 'np_attraction_v2', type: 'ATTRACTION', class: 'cat-attr' },
+        { key: 'np_transport_v2', type: 'TRANSPORT', class: 'cat-trans' },
+        { key: 'np_nomad_v2', type: 'NOMAD', class: 'cat-nomad' }
+    ];
+
+    window.onload = function() {
+        let sel = document.getElementById('tripSelect');
+        trips.forEach(t => sel.add(new Option(t, t)));
+    };
+
+    function generateReport() {
+        const tripName = document.getElementById('tripSelect').value;
+        const tbody = document.getElementById('tbody');
+        tbody.innerHTML = '';
+        let grandTotal = 0;
+        let allItems = [];
+
+        if(!tripName) return;
+
+        // 1. Gather Data
+        sources.forEach(src => {
+            let data = JSON.parse(localStorage.getItem(src.key)) || [];
+            data.forEach(item => {
+                if(item.trip === tripName) {
+                    // Normalize Data
+                    let date = item.checkIn || item.date || item.inDate || "";
+                    let name = item.hotel || item.camp || item.restaurant || item.gh || item.attr || item.trans || item.nomad || "";
+                    
+                    // Detail builder
+                    let details = "";
+                    if(item.rooms) details = "Rooms: " + item.rooms.length;
+                    if(item.accomType) details = item.accomType;
+                    if(item.menuName) details = item.menuName;
+                    if(item.route) details = item.type + ": " + item.route;
+                    
+                    // Pax Builder
+                    let pax = item.paxCount || item.paxForeign || (parseInt(item.forAdlQty||0) + parseInt(item.monAdlQty||0)) || item.adlQty || "";
+
+                    // Clean Money String (Remove commas to sort/sum, then re-format)
+                    let moneyStr = item.grandTotal || item.total || "0";
+                    let moneyVal = parseFloat(moneyStr.replace(/,/g, '')) || 0;
+                    grandTotal += moneyVal;
+
+                    allItems.push({
+                        date: date,
+                        type: src.type,
+                        css: src.class,
+                        name: name,
+                        details: details,
+                        pax: pax,
+                        cost: moneyVal, // Keep as number for now
+                        paid: item.paidDate || item.paid || ""
+                    });
+                }
+            });
+        });
+
+        // 2. Sort by Date
+        allItems.sort((a, b) => (a.date > b.date) ? 1 : -1);
+
+        // 3. Render
+        allItems.forEach(row => {
+            let tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="${row.css}">${row.date}</td>
+                <td>${row.type}</td>
+                <td>${row.name}</td>
+                <td>${row.details}</td>
+                <td>${row.pax}</td>
+                <td>${row.cost.toLocaleString()}</td>
+                <td>${row.paid}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        document.getElementById('grandTotalDisplay').innerText = grandTotal.toLocaleString();
+    }
+
+    function copyToClipboard() {
+        const table = document.getElementById('masterTable');
+        const range = document.createRange();
+        range.selectNode(table);
+        window.getSelection().removeAllRanges();
+        window.getSelection().addRange(range);
+        document.execCommand('copy');
+        window.getSelection().removeAllRanges();
+        alert('Copied! Now open Google Sheets and Paste (Ctrl+V).');
+    }
+</script>
+
+</body>
+</html>
