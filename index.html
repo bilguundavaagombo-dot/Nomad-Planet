@@ -3,13 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hotel Manager (Adults + Children)</title>
+    <title>Hotel Manager (Connected)</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; padding: 20px; color: #333; }
         .container { max-width: 1000px; margin: 0 auto; }
         
-        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        h3 { margin-top: 0; color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        /* Navigation (New) */
+        .nav-bar { display: flex; gap: 10px; margin-bottom: 20px; }
+        .nav-btn { padding: 10px 20px; text-decoration: none; color: white; background-color: #7f8c8d; border-radius: 4px; font-weight: bold; }
+        .nav-btn.active { background-color: #2980b9; } /* Blue for Hotel */
+        
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; border-top: 4px solid #2980b9; }
+        h3 { margin-top: 0; color: #2c3e50; border-bottom: 1px solid #ddd; padding-bottom: 10px; }
 
         input, select { padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 15px; width: 100%; box-sizing: border-box; }
         .row { display: flex; gap: 15px; margin-bottom: 15px; }
@@ -19,18 +24,23 @@
         button { cursor: pointer; border: none; padding: 10px 20px; border-radius: 4px; font-weight: bold; transition: 0.2s; }
         .btn-add { background-color: #27ae60; color: white; width: 100%; margin-top: 23px; } 
         .btn-save { background-color: #2980b9; color: white; width: 100%; font-size: 16px; padding: 12px; }
-        .btn-delete { background-color: #e74c3c; color: white; padding: 5px 10px; font-size: 12px; }
+        .btn-delete { background-color: #c0392b; color: white; padding: 5px 10px; font-size: 12px; border-radius: 4px; }
         
-        .settings-box { background-color: #eaeff2; border: 1px solid #d1d8dd; }
+        .settings-box { background-color: #eaeff2; border: 1px solid #d1d8dd; border-top-color: #bdc3c7;}
         table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; }
         th, td { border: 1px solid #ddd; padding: 12px; text-align: left; font-size: 14px; }
-        th { background-color: #34495e; color: white; }
+        th { background-color: #2c3e50; color: white; }
         .tag { background: #e1f5fe; color: #0277bd; padding: 3px 8px; border-radius: 10px; font-size: 12px; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="container">
+
+    <div class="nav-bar">
+        <a href="index.html" class="nav-btn active">1. HOTEL (Буудал)</a>
+        <a href="camp.html" class="nav-btn">2. CAMP (Бааз)</a>
+    </div>
 
     <div class="card settings-box">
         <h3>1. Settings</h3>
@@ -54,7 +64,7 @@
     </div>
 
     <div class="card">
-        <h3>2. New Booking</h3>
+        <h3>2. New Hotel Booking</h3>
         
         <div class="row">
             <div class="col">
@@ -103,7 +113,7 @@
             </div>
             <div class="col">
                 <label>Nights (Auto)</label>
-                <input type="text" id="nights" readonly placeholder="0">
+                <input type="text" id="nights" readonly placeholder="0" style="background: #eee;">
             </div>
         </div>
 
@@ -111,7 +121,7 @@
     </div>
 
     <div class="card">
-        <h3>3. Saved Database</h3>
+        <h3>3. Saved Hotel List</h3>
         <table>
             <thead>
                 <tr>
@@ -209,7 +219,7 @@
             row.innerHTML = `
                 <td>${b.trip}</td>
                 <td>${b.hotel}</td>
-                <td><b>${b.adults}</b> Adults, <b>${b.children}</b> Child</td>
+                <td><b>${b.adults}</b> Adl, <b>${b.children}</b> Chd</td>
                 <td>${b.inDate} <br> ${b.outDate}</td>
                 <td>${b.nights}</td>
                 <td><span class="tag">${b.type}</span> x${b.count}</td>
