@@ -2,7 +2,7 @@
 <html lang="mn">
 <head>
     <meta charset="UTF-8">
-    <title>Нэгдсэн Тайлан (Summary)</title>
+    <title>Нэгдсэн Тайлан (Final)</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f6; padding: 20px; color: #333; }
         .container { max-width: 100%; margin: 0 auto; }
@@ -19,7 +19,7 @@
         .btn-copy { background: #27ae60; color: white; padding: 10px 20px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 14px; }
         .btn-copy:hover { background: #2ecc71; }
 
-        /* GOOGLE SHEETS STYLE TABLE */
+        /* GOOGLE SHEETS READY TABLE STYLE */
         table { 
             width: 100%; 
             border-collapse: collapse; 
@@ -29,14 +29,17 @@
             border: 1px solid #000;
         }
         th, td { 
-            border: 1px solid #000; /* Solid borders for Excel/Sheets */
+            border: 1px solid #000; 
             padding: 8px; 
             text-align: left; 
             vertical-align: top;
         }
         th { background-color: #dcdcdc; font-weight: bold; text-transform: uppercase; }
         
-        /* Category Colors on Left Border */
+        /* Trip Name Header Style */
+        .trip-header { background-color: #4a69bd; color: white; font-size: 18px; text-align: center; padding: 15px; }
+
+        /* Category Colors */
         .row-hotel { border-left: 5px solid #2980b9; }
         .row-camp { border-left: 5px solid #e67e22; }
         .row-rest { border-left: 5px solid #e74c3c; }
@@ -46,8 +49,8 @@
         .row-nomad { border-left: 5px solid #795548; }
 
         /* Footer Totals */
-        tfoot tr td { background-color: #f9e79f; font-weight: bold; font-size: 14px; border-top: 2px solid #000; }
-        .money-cell { text-align: right; }
+        tfoot tr td { background-color: #f9e79f; font-weight: bold; font-size: 13px; border: 1px solid #000; }
+        .money-cell { text-align: right; white-space: nowrap; }
     </style>
 </head>
 <body>
@@ -78,14 +81,17 @@
         <div id="tableContainer">
             <table id="masterTable">
                 <thead>
+                    <tr id="tripNameRow" style="display:none;">
+                        <th colspan="9" class="trip-header" id="tableTripTitle">АЯЛЛЫН НЭР</th>
+                    </tr>
                     <tr>
-                        <th style="width:90px;">Огноо</th>
-                        <th style="width:120px;">Төрөл</th>
-                        <th style="width:150px;">Үйлчилгээний Нэр</th>
-                        <th>Дэлгэрэнгүй (Өрөө / Меню / Маршрут)</th>
+                        <th style="width:80px;">Огноо</th>
+                        <th style="width:110px;">Үйлчилгээний Төрөл</th>
+                        <th style="width:150px;">Газрын Нэр</th>
+                        <th>Дэлгэрэнгүй (Өрөө / Меню / Чиглэл)</th>
                         <th>Хүний Тоо</th>
                         <th>Хоолны Мэдээлэл</th>
-                        <th>Бусад / Хөтөч</th>
+                        <th>Бусад (Орчуулагч / Нэмэлт)</th>
                         <th>Нийт Дүн</th>
                         <th>Төлбөрийн Байдал</th>
                     </tr>
@@ -93,13 +99,18 @@
                 <tbody id="tbody"></tbody>
                 <tfoot id="tfoot" style="display:none;">
                     <tr>
-                        <td colspan="7" style="text-align:right;">АЯЛЛЫН НЭР: <span id="footerTripName"></span> | НИЙТ ЗАРДАЛ:</td>
+                        <td colspan="7" style="text-align:right;">НИЙТ ЗАРДАЛ:</td>
                         <td class="money-cell" id="footerTotal">0</td>
                         <td></td>
                     </tr>
                     <tr>
-                        <td colspan="7" style="text-align:right;">ТӨЛӨГДСӨН ДҮН:</td>
+                        <td colspan="7" style="text-align:right;">ТӨЛСӨН ДҮН:</td>
                         <td class="money-cell" id="footerPaid" style="color:green;">0</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td colspan="7" style="text-align:right;">ҮЛДЭГДЭЛ:</td>
+                        <td class="money-cell" id="footerBalance" style="color:red;">0</td>
                         <td></td>
                     </tr>
                 </tfoot>
@@ -115,6 +126,13 @@
     // Helper: Number Format
     const fmt = (num) => num ? parseInt(num).toLocaleString() : '0';
 
+    // Helper: Pax Formatter (Hide kids if 0)
+    function formatPax(adl, chd, labelAdl="Том", labelChd="Хүүхэд") {
+        let s = `${labelAdl}: ${adl}`;
+        if(parseInt(chd) > 0) s += `, ${labelChd}: ${chd}`;
+        return s;
+    }
+
     window.onload = function() {
         let sel = document.getElementById('tripSelect');
         trips.forEach(t => sel.add(new Option(t, t)));
@@ -124,6 +142,7 @@
         const tripName = document.getElementById('tripSelect').value;
         const tbody = document.getElementById('tbody');
         const tfoot = document.getElementById('tfoot');
+        const tripTitleRow = document.getElementById('tripNameRow');
         
         tbody.innerHTML = '';
         let grandTotal = 0;
@@ -132,8 +151,13 @@
 
         if(!tripName) {
             tfoot.style.display = 'none';
+            tripTitleRow.style.display = 'none';
             return;
         }
+
+        // Show Trip Name Header
+        tripTitleRow.style.display = 'table-row';
+        document.getElementById('tableTripTitle').innerText = "АЯЛЛЫН НЭР: " + tripName.toUpperCase();
 
         // --- 1. HOTEL ---
         let hotels = JSON.parse(localStorage.getItem('np_hotel_pro_v3')) || [];
@@ -157,7 +181,7 @@
                     css: "row-hotel",
                     name: x.hotel,
                     desc: roomStr,
-                    pax: `Нийт: ${x.paxCount} <br> Хоног: ${x.nights}`,
+                    pax: `Нийт: ${x.paxCount}, Хоног: ${x.nights}`,
                     food: foodStr,
                     extra: `${x.extraName || '-'} (${fmt(x.extraPrice)}) <br> Хөнгөлөлт: -${fmt(x.discount)}`,
                     cost: cost,
@@ -176,13 +200,18 @@
                 grandTotal += cost;
                 if(x.paidDate) paidTotal += cost;
 
+                // Fix Pax String
+                let paxStr = `Гадаад: ${x.forAdlQty}`;
+                if(x.forChdQty > 0) paxStr += `/${x.forChdQty}хүү`;
+                if(x.monAdlQty > 0) paxStr += `<br> Монгол: ${x.monAdlQty}`;
+
                 allItems.push({
                     date: x.checkIn,
-                    cat: "БАЗА",
+                    cat: "ЖУУЛЧНЫ БААЗ",
                     css: "row-camp",
                     name: x.camp,
                     desc: `${x.accomType} (${x.roomConfig})`,
-                    pax: `Гадаад: ${x.forAdlQty}том/${x.forChdQty}хүү <br> Монгол: ${x.monAdlQty}том`,
+                    pax: paxStr,
                     food: foodStr,
                     extra: `${x.extraName || '-'} (${fmt(x.extraPrice)})`,
                     cost: cost,
@@ -205,7 +234,7 @@
                     css: "row-rest",
                     name: x.restaurant,
                     desc: `Меню: ${x.menuName} (${fmt(x.menuPrice)})`,
-                    pax: `Гадаад: ${x.paxForeign} <br> Монгол: ${x.paxMongol}`,
+                    pax: `Гадаад: ${x.paxForeign}, Монгол: ${x.paxMongol}`,
                     food: "Меню захиалга",
                     extra: `Орчуулагч: ${x.guideName} <br> Утас: ${x.guidePhone}`,
                     cost: cost,
@@ -222,13 +251,17 @@
                 grandTotal += cost;
                 if(x.paidDate) paidTotal += cost;
 
+                let paxStr = `Гад: ${x.forAdlQty}`;
+                if(x.forChdQty > 0) paxStr += `/${x.forChdQty}хүү`;
+                if(x.monAdlQty > 0) paxStr += `<br> Мон: ${x.monAdlQty}`;
+
                 allItems.push({
                     date: x.checkIn,
                     cat: "ГЭСТ ХАУС",
                     css: "row-gh",
                     name: x.gh,
                     desc: `${x.accomType} (${x.roomConfig})`,
-                    pax: `Гад: ${x.forAdlQty}/${x.forChdQty} <br> Мон: ${x.monAdlQty}`,
+                    pax: paxStr,
                     food: `Өглөө:${x.bfQty} / Өдөр:${x.lnQty} / Орой:${x.dnQty}`,
                     extra: `${x.extraName} (${fmt(x.extraPrice)})`,
                     cost: cost,
@@ -251,7 +284,7 @@
                     css: "row-attr",
                     name: x.attr,
                     desc: "Тасалбар",
-                    pax: `Том: ${x.adlQty} x${fmt(x.adlPrice)} <br> Хүүхэд: ${x.chdQty} x${fmt(x.chdPrice)}`,
+                    pax: formatPax(x.adlQty, x.chdQty),
                     food: "-",
                     extra: `Орчуулагч: ${x.guide} <br> Утас: ${x.phone}`,
                     cost: cost,
@@ -274,7 +307,7 @@
                     css: "row-trans",
                     name: x.trans,
                     desc: `${x.type} - ${x.route}`,
-                    pax: `Том: ${x.adlQty} <br> Хүүхэд: ${x.chdQty}`,
+                    pax: formatPax(x.adlQty, x.chdQty),
                     food: "-",
                     extra: `Жолооч: ${x.guideName} (${x.guidePhone}) <br> <b>Зорчигчид:</b> <br> ${x.paxList}`,
                     cost: cost,
@@ -302,7 +335,7 @@
                     desc: "Гэрт байрлах (" + x.days + " хоног)",
                     pax: `Жуулчин: ${x.paxF} <br> Монгол: ${x.paxM}`,
                     food: `Хоолны зардал: ${fmt(x.foodPrice)}`,
-                    extra: horseStr + camelStr + `<br> Бусад: ${x.extraName}`,
+                    extra: horseStr + camelStr + `<br> Нэмэлт: ${x.extraName}`,
                     cost: cost,
                     status: `Нэх: ${x.inv} <br> Төл: ${x.paid}`
                 });
@@ -323,15 +356,15 @@
                 <td>${row.food}</td>
                 <td>${row.extra}</td>
                 <td class="money-cell" style="font-weight:bold;">${row.cost.toLocaleString()}</td>
-                <td>${row.status}</td>
+                <td style="font-size:11px;">${row.status}</td>
             `;
             tbody.appendChild(tr);
         });
 
         // --- UPDATE FOOTER ---
-        document.getElementById('footerTripName').innerText = tripName.toUpperCase();
         document.getElementById('footerTotal').innerText = grandTotal.toLocaleString() + " ₮";
         document.getElementById('footerPaid').innerText = paidTotal.toLocaleString() + " ₮";
+        document.getElementById('footerBalance').innerText = (grandTotal - paidTotal).toLocaleString() + " ₮";
         tfoot.style.display = 'table-footer-group';
     }
 
