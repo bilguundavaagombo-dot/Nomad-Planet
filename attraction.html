@@ -2,31 +2,52 @@
 <html lang="mn">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Attraction Manager</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; padding: 20px; color: #333; }
-        .nav-bar { display: flex; gap: 5px; margin-bottom: 20px; flex-wrap: wrap; }
-        .nav-btn { padding: 8px 15px; text-decoration: none; color: white; background: #7f8c8d; border-radius: 4px; font-weight: bold; font-size: 12px; }
-        .nav-btn.active { background: #16a085; } /* Teal */
+        /* 1. FONT FIXED TO MATCH PREVIOUS PAGES */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; padding: 20px; color: #333; }
+        .container { max-width: 100%; margin: 0 auto; }
         
-        .card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-top: 4px solid #16a085; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .nav-bar { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .nav-btn { padding: 10px 20px; text-decoration: none; color: white; background-color: #7f8c8d; border-radius: 4px; font-weight: bold; }
+        .nav-btn.active { background-color: #16a085; } /* Teal for Attraction */
+        
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; border-top: 4px solid #16a085; }
+        h3 { margin-top: 0; color: #0e6655; border-bottom: 1px solid #ddd; padding-bottom: 10px; margin-bottom: 15px; }
+        .big-title { font-size: 24px; font-weight: 800; color: #0e6655; text-transform: uppercase; border-bottom: 3px solid #16a085; padding-bottom: 10px; margin-bottom: 15px; margin-top: 0; }
+        h4 { margin: 10px 0 5px 0; color: #555; font-size: 14px; text-transform: uppercase; border-bottom: 1px dashed #ccc; padding-bottom: 5px;}
+
         .row { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
-        .col { flex: 1; min-width: 120px; }
+        .col { flex: 1; min-width: 100px; }
         label { font-weight: bold; font-size: 11px; display: block; margin-bottom: 5px; color: #555; }
-        input, select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 100%; box-sizing: border-box; }
-        .total-box { background: #e8f8f5; text-align: right; padding: 10px; font-weight: bold; color: #16a085; border: 1px solid #a2d9ce; }
+        input, select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; width: 100%; box-sizing: border-box; }
+        input:focus, select:focus { border-color: #16a085; outline: none; }
         
-        button { cursor: pointer; border: none; padding: 8px 15px; border-radius: 4px; font-weight: bold; }
-        .btn-add { background: #27ae60; color: white; margin-top: 21px; width: 100%; }
-        .btn-save { background: #16a085; color: white; width: 100%; margin-top: 10px; padding: 12px; }
-        .btn-delete { background: #c0392b; color: white; padding: 3px 8px; font-size: 11px; }
+        .edit-mode { border: 2px solid #f39c12; background-color: #fffdf6; }
+        .total-box { background: #e8f8f5; padding: 10px; border: 1px solid #a2d9ce; margin-top: 10px; text-align: right; font-size: 18px; font-weight: bold; color: #0e6655; }
+
+        button { cursor: pointer; border: none; padding: 10px 20px; border-radius: 4px; font-weight: bold; }
+        .btn-add { background-color: #27ae60; color: white; width: 100%; margin-top: 21px; } 
+        .btn-save { background-color: #16a085; color: white; width: 100%; font-size: 16px; padding: 12px; margin-top: 10px;}
+        .btn-update { background-color: #f39c12; color: white; width: 100%; font-size: 16px; padding: 12px; margin-top: 10px;} 
+        .btn-edit { background-color: #f39c12; color: white; padding: 4px 8px; font-size: 11px; border-radius: 4px; margin-right: 5px; }
+        .btn-delete { background-color: #c0392b; color: white; padding: 4px 8px; font-size: 11px; border-radius: 4px; }
+
+        table { width: 100%; border-collapse: collapse; background: white; font-size: 12px; table-layout: auto; }
+        th, td { border: 1px solid #ddd; padding: 8px 5px; text-align: center; vertical-align: middle; }
+        th { background-color: #16a085; color: white; font-weight: 600; font-size: 11px; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        tr:hover { background-color: #e8f8f5; }
         
-        table { width: 100%; border-collapse: collapse; background: white; font-size: 12px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-        th { background: #16a085; color: white; }
+        .col-money { font-weight: bold; color: #2c3e50; background-color: #f4f6f7; }
+        .col-total { font-weight: bold; color: #0e6655; background-color: #e8f8f5; font-size: 14px; }
+        .info-cell { text-align: left; font-size: 12px; line-height: 1.4; }
+        .date-cell { font-size: 11px; color: #666; line-height: 1.3; }
     </style>
 </head>
 <body>
+
 <div class="container">
     <div class="nav-bar">
         <a href="index.html" class="nav-btn">1. HOTEL</a>
@@ -38,50 +59,73 @@
         <a href="nomad.html" class="nav-btn">7. МАЛЧИН</a>
     </div>
 
-    <div class="card">
+    <div class="card" style="background-color: #e8f8f5; border-top-color: #16a085;">
         <h4>Settings (Enter дарж нэмнэ)</h4>
         <div class="row">
             <div class="col"><label>Шинэ Аялал</label><input type="text" id="newTrip" onkeypress="handleEnter(event, 'trip')"></div>
-            <div class="col" style="flex:0.2"><button class="btn-add" onclick="addOpt('trip')">+</button></div>
+            <div class="col" style="flex:0.2"><button class="btn-add" onclick="addOpt('trip')">Нэмэх</button></div>
             <div class="col"><label>Шинэ Үзвэр</label><input type="text" id="newAttr" onkeypress="handleEnter(event, 'attr')"></div>
-            <div class="col" style="flex:0.2"><button class="btn-add" onclick="addOpt('attr')">+</button></div>
+            <div class="col" style="flex:0.2"><button class="btn-add" onclick="addOpt('attr')">Нэмэх</button></div>
+        </div>
+        
+        <div class="row" style="border-top:1px dashed #a2d9ce; padding-top:10px; margin-top:10px;">
+            <div class="col"><label>Шинэ Орчуулагч (Нэр)</label><input type="text" id="newGuideName"></div>
+            <div class="col"><label>Утасны Дугаар</label><input type="text" id="newGuidePhone"></div>
+            <div class="col" style="flex: 0.3;"><button class="btn-add" onclick="addNewGuide()">Хадгалах</button></div>
         </div>
     </div>
 
-    <div class="card">
-        <h3>5. Үзвэр & Тоглолт</h3>
+    <div class="card" id="bookingFormCard">
+        <h3 id="formTitle">5. Үзвэр & Тоглолт</h3>
         <input type="hidden" id="editId">
+        
         <div class="row">
             <div class="col"><label>Аялал</label><select id="tripSel"></select></div>
             <div class="col"><label>Үзвэр/Музей</label><select id="attrSel"></select></div>
             <div class="col"><label>Огноо</label><input type="date" id="date"></div>
             <div class="col"><label>Цаг</label><input type="time" id="time"></div>
         </div>
+
+        <hr style="border:0; border-top:1px dashed #ddd; margin:10px 0;">
+
+        <h4>Хүний тоо & Үнэ (Edit хийж өөрчилж болно)</h4>
         <div class="row">
             <div class="col"><label>Том хүн (Тоо)</label><input type="number" id="adlQty" oninput="calc()"></div>
             <div class="col"><label>Том хүн (Үнэ)</label><input type="number" id="adlPrice" oninput="calc()"></div>
             <div class="col"><label>Хүүхэд (Тоо)</label><input type="number" id="chdQty" oninput="calc()"></div>
             <div class="col"><label>Хүүхэд (Үнэ)</label><input type="number" id="chdPrice" oninput="calc()"></div>
         </div>
+
+        <hr style="border:0; border-top:1px dashed #ddd; margin:10px 0;">
+
+        <h4>Орчуулагч & Төлбөр</h4>
         <div class="row">
-            <div class="col"><label>Орчуулагч Нэр</label><input type="text" id="guideName"></div>
-            <div class="col"><label>Орчуулагч Утас</label><input type="text" id="guidePhone"></div>
+            <div class="col"><label>Орчуулагч Сонгох</label><select id="guideSelect" onchange="fillGuidePhone()"><option value="">Сонгоно уу...</option></select></div>
+            <div class="col"><label>Утас (Auto)</label><input type="text" id="guidePhone"></div>
             <div class="col"><label>Нэхэмжилсэн</label><input type="date" id="invDate"></div>
             <div class="col"><label>Төлсөн</label><input type="date" id="paidDate"></div>
         </div>
+
         <div class="total-box">НИЙТ: <span id="totalDisplay">0</span> ₮</div>
-        <button class="btn-save" onclick="saveData()">ХАДГАЛАХ</button>
+        
+        <button id="saveBtn" class="btn-save" onclick="saveData()">ХАДГАЛАХ</button>
+        <button id="cancelBtn" class="btn-delete" style="display:none; margin-top:10px; padding:12px;" onclick="cancelEdit()">ЦУЦЛАХ</button>
     </div>
 
     <div class="card">
         <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-            <h3>ЖАГСААЛТ (Sheet)</h3>
-            <select id="filterAttr" onchange="renderTable()"><option value="ALL">Бүх Үзвэр</option></select>
+            <h3 class="big-title">3. ҮЗВЭРИЙН ЖАГСААЛТ (Sheet)</h3>
+            <div style="display:flex; gap:10px;">
+                <div style="width: 150px;"><input type="month" id="filterMonth" onchange="renderTable()" style="padding:6px;"></div>
+                <div style="width: 200px;"><select id="filterAttr" onchange="renderTable()"><option value="ALL">Бүх Үзвэр</option></select></div>
+            </div>
         </div>
         <table>
             <thead>
                 <tr>
-                    <th>X</th> <th>Аялал / Үзвэр</th> <th>Огноо</th> <th>Том</th> <th>Хүүхэд</th> <th>Орчуулагч</th> <th>Нийт</th> <th>Төлбөр</th>
+                    <th>Үйлдэл</th> <th>Аялал / Үзвэр</th> <th>Огноо / Цаг</th> 
+                    <th>Том Хүн</th> <th>Хүүхэд</th> 
+                    <th>Орчуулагч</th> <th>Нийт</th> <th>Төлбөр</th>
                 </tr>
             </thead>
             <tbody id="tbody"></tbody>
@@ -92,11 +136,13 @@
 <script>
     let trips = JSON.parse(localStorage.getItem('np_trips')) || [];
     let attrs = JSON.parse(localStorage.getItem('np_attrs')) || [];
-    let data = JSON.parse(localStorage.getItem('np_attraction_v1')) || [];
+    let guides = JSON.parse(localStorage.getItem('np_guides')) || []; // Shared with Restaurant
+    let data = JSON.parse(localStorage.getItem('np_attraction_v2')) || [];
 
     window.onload = () => { renderOps(); renderTable(); };
 
     function handleEnter(e, type) { if(e.key === 'Enter') addOpt(type); }
+    
     function addOpt(type) {
         let val = document.getElementById(type === 'trip' ? 'newTrip' : 'newAttr').value;
         if(val) {
@@ -106,59 +152,145 @@
             renderOps();
         }
     }
+
+    // --- Guide Logic ---
+    function addNewGuide() {
+        const name = document.getElementById('newGuideName').value;
+        const phone = document.getElementById('newGuidePhone').value;
+        if(name) {
+            guides.push({ name: name, phone: phone });
+            localStorage.setItem('np_guides', JSON.stringify(guides));
+            document.getElementById('newGuideName').value = '';
+            document.getElementById('newGuidePhone').value = '';
+            renderOps(); 
+        }
+    }
+
+    function fillGuidePhone() {
+        const guideName = document.getElementById('guideSelect').value;
+        const guide = guides.find(g => g.name === guideName);
+        if(guide) {
+            document.getElementById('guidePhone').value = guide.phone;
+        } else {
+            document.getElementById('guidePhone').value = '';
+        }
+    }
+    // ------------------
+
     function renderOps() {
         let t = document.getElementById('tripSel'), a = document.getElementById('attrSel'), f = document.getElementById('filterAttr');
-        t.innerHTML = ''; a.innerHTML = ''; f.innerHTML = '<option value="ALL">Бүх Үзвэр</option>';
+        let g = document.getElementById('guideSelect');
+
+        t.innerHTML = ''; a.innerHTML = ''; f.innerHTML = '<option value="ALL">Бүх Үзвэр</option>'; g.innerHTML = '<option value="">Сонгоно уу...</option>';
+        
         trips.forEach(x => t.add(new Option(x, x)));
         attrs.forEach(x => { a.add(new Option(x, x)); f.add(new Option(x, x)); });
+        guides.forEach(x => g.add(new Option(x.name, x.name)));
     }
+
     function calc() {
-        let aq = document.getElementById('adlQty').value || 0, ap = document.getElementById('adlPrice').value || 0;
-        let cq = document.getElementById('chdQty').value || 0, cp = document.getElementById('chdPrice').value || 0;
+        let aq = parseFloat(document.getElementById('adlQty').value) || 0;
+        let ap = parseFloat(document.getElementById('adlPrice').value) || 0;
+        let cq = parseFloat(document.getElementById('chdQty').value) || 0;
+        let cp = parseFloat(document.getElementById('chdPrice').value) || 0;
         document.getElementById('totalDisplay').innerText = ((aq*ap) + (cq*cp)).toLocaleString();
     }
+
     function saveData() {
+        let editId = document.getElementById('editId').value;
         let obj = {
-            id: document.getElementById('editId').value || Date.now(),
+            id: editId ? parseInt(editId) : Date.now(),
             trip: document.getElementById('tripSel').value, attr: document.getElementById('attrSel').value,
             date: document.getElementById('date').value, time: document.getElementById('time').value,
             adlQty: document.getElementById('adlQty').value, adlPrice: document.getElementById('adlPrice').value,
             chdQty: document.getElementById('chdQty').value, chdPrice: document.getElementById('chdPrice').value,
-            guide: document.getElementById('guideName').value, phone: document.getElementById('guidePhone').value,
+            guide: document.getElementById('guideSelect').value, phone: document.getElementById('guidePhone').value,
             inv: document.getElementById('invDate').value, paid: document.getElementById('paidDate').value,
             total: document.getElementById('totalDisplay').innerText
         };
-        let idx = data.findIndex(x => x.id == obj.id);
-        if(idx > -1) data[idx] = obj; else data.push(obj);
-        localStorage.setItem('np_attraction_v1', JSON.stringify(data));
+
+        if(editId) {
+            let idx = data.findIndex(x => x.id == editId);
+            if(idx > -1) data[idx] = obj;
+        } else {
+            data.push(obj);
+        }
+        
+        localStorage.setItem('np_attraction_v2', JSON.stringify(data));
+        cancelEdit();
         renderTable();
-        // Reset Inputs
-        document.querySelectorAll('input').forEach(i => i.value = ''); document.getElementById('totalDisplay').innerText='0';
     }
-    function renderTable() {
-        let tb = document.getElementById('tbody'), f = document.getElementById('filterAttr').value;
-        tb.innerHTML = '';
-        data.sort((a,b)=> a.date > b.date ? 1 : -1).forEach(x => {
-            if(f !== 'ALL' && x.attr !== f) return;
-            let row = tb.insertRow();
-            row.innerHTML = `<td><button class="btn-delete" onclick="del(${x.id})">X</button></td>
-            <td><b>${x.trip}</b><br>${x.attr}</td> <td>${x.date}<br>${x.time}</td>
-            <td>${x.adlQty}x ${parseInt(x.adlPrice).toLocaleString()}</td> <td>${x.chdQty}x ${parseInt(x.chdPrice).toLocaleString()}</td>
-            <td>${x.guide}<br><small>${x.phone}</small></td>
-            <td style="font-weight:bold; color:#16a085;">${x.total}</td>
-            <td>Н: ${x.inv}<br>Т: ${x.paid}</td>`;
-            row.ondblclick = () => loadEdit(x); // Double click to edit
-        });
-    }
-    function del(id) { if(confirm('Ustgah?')) { data = data.filter(x => x.id != id); localStorage.setItem('np_attraction_v1', JSON.stringify(data)); renderTable(); } }
+
     function loadEdit(x) {
-        document.getElementById('editId').value = x.id; document.getElementById('tripSel').value = x.trip; document.getElementById('attrSel').value = x.attr;
-        document.getElementById('date').value = x.date; document.getElementById('time').value = x.time;
+        document.getElementById('editId').value = x.id; 
+        document.getElementById('tripSel').value = x.trip; 
+        document.getElementById('attrSel').value = x.attr;
+        document.getElementById('date').value = x.date; 
+        document.getElementById('time').value = x.time;
+        
         document.getElementById('adlQty').value = x.adlQty; document.getElementById('adlPrice').value = x.adlPrice;
         document.getElementById('chdQty').value = x.chdQty; document.getElementById('chdPrice').value = x.chdPrice;
-        document.getElementById('guideName').value = x.guide; document.getElementById('guidePhone').value = x.phone;
+        
+        document.getElementById('guideSelect').value = x.guide; 
+        document.getElementById('guidePhone').value = x.phone;
+        
         document.getElementById('invDate').value = x.inv; document.getElementById('paidDate').value = x.paid;
         calc();
+
+        // UI Change
+        document.getElementById('saveBtn').innerText = "ШИНЭЧЛЭХ";
+        document.getElementById('saveBtn').className = "btn-update";
+        document.getElementById('cancelBtn').style.display = "inline-block";
+        document.getElementById('bookingFormCard').classList.add('edit-mode');
+        document.getElementById('formTitle').innerText = "5. Үзвэр & Тоглолт (Засах)";
+    }
+
+    function cancelEdit() {
+        document.querySelectorAll('input').forEach(i => i.value = ''); 
+        document.getElementById('totalDisplay').innerText='0';
+        document.getElementById('guideSelect').value = "";
+        
+        document.getElementById('editId').value = "";
+        document.getElementById('saveBtn').innerText = "ХАДГАЛАХ";
+        document.getElementById('saveBtn').className = "btn-save";
+        document.getElementById('cancelBtn').style.display = "none";
+        document.getElementById('bookingFormCard').classList.remove('edit-mode');
+        document.getElementById('formTitle').innerText = "5. Үзвэр & Тоглолт";
+    }
+
+    function renderTable() {
+        let tb = document.getElementById('tbody');
+        let filterAttr = document.getElementById('filterAttr').value;
+        let filterMonth = document.getElementById('filterMonth').value;
+        
+        tb.innerHTML = '';
+        
+        data.sort((a,b)=> a.date > b.date ? 1 : -1).forEach(x => {
+            if(filterAttr !== 'ALL' && x.attr !== filterAttr) return;
+            if(filterMonth && !x.date.startsWith(filterMonth)) return;
+
+            let row = tb.insertRow();
+            row.innerHTML = `
+            <td>
+                <button class="btn-edit" onclick="loadEdit(${x.id})">Зас</button>
+                <button class="btn-delete" onclick="del(${x.id})">X</button>
+            </td>
+            <td class="info-cell"><b>${x.trip}</b><br>${x.attr}</td> 
+            <td class="info-cell" style="text-align:center">${x.date}<br><b>${x.time}</b></td>
+            <td>${x.adlQty}x <span class="col-money">${parseInt(x.adlPrice).toLocaleString()}</span></td> 
+            <td>${x.chdQty}x <span class="col-money">${parseInt(x.chdPrice).toLocaleString()}</span></td>
+            <td class="info-cell">${x.guide}<br><small>${x.phone}</small></td>
+            <td class="col-total">${x.total}</td>
+            <td class="date-cell">Н: ${x.inv}<br>Т: ${x.paid}</td>`;
+        });
+    }
+
+    function del(id) { 
+        if(confirm('Устгах уу?')) { 
+            data = data.filter(x => x.id != id); 
+            localStorage.setItem('np_attraction_v2', JSON.stringify(data)); 
+            renderTable(); 
+        } 
     }
 </script>
 </body>
