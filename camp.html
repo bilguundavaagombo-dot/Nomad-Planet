@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Camp Manager (Enter Key)</title>
+    <title>Camp Manager (Silent & Food Fixed)</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; padding: 20px; color: #333; }
         .container { max-width: 100%; margin: 0 auto; }
@@ -50,13 +50,9 @@
     <div class="card" style="background-color: #fff8e1; border-top-color: #f1c40f;">
         <h4>Settings</h4>
         <div class="row">
-            <div class="col"><label>Шинэ Аялал</label>
-                <input type="text" id="newTripInput" onkeypress="handleEnter(event, 'trip')">
-            </div>
+            <div class="col"><label>Шинэ Аялал</label><input type="text" id="newTripInput" onkeypress="handleEnter(event, 'trip')"></div>
             <div class="col" style="flex: 0.3;"><button class="btn-add" onclick="addNewOption('trip')">Нэмэх</button></div>
-            <div class="col"><label>Шинэ Бааз</label>
-                <input type="text" id="newCampInput" onkeypress="handleEnter(event, 'camp')">
-            </div>
+            <div class="col"><label>Шинэ Бааз</label><input type="text" id="newCampInput" onkeypress="handleEnter(event, 'camp')"></div>
             <div class="col" style="flex: 0.3;"><button class="btn-add" onclick="addNewOption('camp')">Нэмэх</button></div>
         </div>
     </div>
@@ -86,7 +82,7 @@
             <div class="col"><label>Монгол (Том) Үнэ</label><input type="number" id="monAdlPrice" oninput="calcTotal()"></div>
         </div>
         <hr style="border:0; border-top:1px dashed #ddd; margin:10px 0;">
-        <h4>Хоол</h4>
+        <h4>Хоол (Тоо x Үнэ x Бүх Хүмүүс)</h4>
         <div class="row">
             <div class="col"><label>Өглөө Тоо</label><input type="number" id="bfQty" oninput="calcTotal()"></div>
             <div class="col"><label>Өглөө Үнэ</label><input type="number" id="bfPrice" oninput="calcTotal()"></div>
@@ -113,14 +109,8 @@
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
             <h3 class="big-title">3. ЖАГСААЛТ (SHEET)</h3>
             <div style="display:flex; gap:10px;">
-                <div style="width: 150px;">
-                    <label>Сараар шүүх:</label>
-                    <input type="month" id="filterMonth" onchange="renderTable()" style="padding:6px;">
-                </div>
-                <div style="width: 200px;">
-                    <label>Баазаар шүүх:</label>
-                    <select id="filterCamp" onchange="renderTable()"><option value="ALL">Бүх Бааз</option></select>
-                </div>
+                <div style="width: 150px;"><input type="month" id="filterMonth" onchange="renderTable()" style="padding:6px;"></div>
+                <div style="width: 200px;"><select id="filterCamp" onchange="renderTable()"><option value="ALL">Бүх Бааз</option></select></div>
             </div>
         </div>
         <table>
@@ -152,17 +142,9 @@
     let camps = JSON.parse(localStorage.getItem('np_camps')) || [];
     let bookings = JSON.parse(localStorage.getItem('np_camp_compact_v2')) || [];
 
-    window.onload = function() {
-        renderDropdowns();
-        renderTable();
-    };
+    window.onload = function() { renderDropdowns(); renderTable(); };
 
-    // --- NEW: HANDLE ENTER KEY ---
-    function handleEnter(e, type) {
-        if(e.key === 'Enter') {
-            addNewOption(type);
-        }
-    }
+    function handleEnter(e, type) { if(e.key === 'Enter') { addNewOption(type); } }
 
     function formatDate(input) {
         let v = input.value.replace(/[^0-9]/g, '');
@@ -192,9 +174,13 @@
         const accomPerNight = (forAdlQty * forAdlPrice) + (forChdQty * forChdPrice) + (monAdlQty * monAdlPrice);
         const totalAccom = accomPerNight * nights;
 
-        const bfTotal = (parseFloat(document.getElementById('bfQty').value)||0) * (parseFloat(document.getElementById('bfPrice').value)||0);
-        const lnTotal = (parseFloat(document.getElementById('lnQty').value)||0) * (parseFloat(document.getElementById('lnPrice').value)||0);
-        const dnTotal = (parseFloat(document.getElementById('dnQty').value)||0) * (parseFloat(document.getElementById('dnPrice').value)||0);
+        // TOTAL PEOPLE FOR FOOD
+        const totalPeople = forAdlQty + forChdQty + monAdlQty;
+
+        // FOOD CALCULATION (Qty * Price * Total People)
+        const bfTotal = (parseFloat(document.getElementById('bfQty').value)||0) * (parseFloat(document.getElementById('bfPrice').value)||0) * totalPeople;
+        const lnTotal = (parseFloat(document.getElementById('lnQty').value)||0) * (parseFloat(document.getElementById('lnPrice').value)||0) * totalPeople;
+        const dnTotal = (parseFloat(document.getElementById('dnQty').value)||0) * (parseFloat(document.getElementById('dnPrice').value)||0) * totalPeople;
         
         const grandFood = bfTotal + lnTotal + dnTotal; 
         const extra = parseFloat(document.getElementById('extraPrice').value) || 0;
@@ -214,9 +200,7 @@
     }
 
     function renderDropdowns() {
-        const tripSel = document.getElementById('tripSelect');
-        const campSel = document.getElementById('campSelect');
-        const filterSel = document.getElementById('filterCamp');
+        const tripSel = document.getElementById('tripSelect'); const campSel = document.getElementById('campSelect'); const filterSel = document.getElementById('filterCamp');
         const currTrip = tripSel.value; const currCamp = campSel.value; const currFilter = filterSel.value;
         tripSel.innerHTML = ''; campSel.innerHTML = ''; filterSel.innerHTML = '<option value="ALL">Бүх Бааз</option>';
         trips.forEach(t => { let opt = document.createElement('option'); opt.value = t; opt.innerHTML = t; tripSel.appendChild(opt); });
@@ -224,9 +208,7 @@
             let opt = document.createElement('option'); opt.value = h; opt.innerHTML = h; campSel.appendChild(opt);
             let filterOpt = document.createElement('option'); filterOpt.value = h; filterOpt.innerHTML = h; filterSel.appendChild(filterOpt);
         });
-        if(currTrip) tripSel.value = currTrip;
-        if(currCamp) campSel.value = currCamp;
-        if(currFilter) filterSel.value = currFilter;
+        if(currTrip) tripSel.value = currTrip; if(currCamp) campSel.value = currCamp; if(currFilter) filterSel.value = currFilter;
     }
 
     function saveBooking() {
@@ -257,10 +239,8 @@
         if (editId) {
             const index = bookings.findIndex(b => b.id == editId);
             if (index !== -1) bookings[index] = data;
-            alert("Амжилттай шинэчиллээ!");
         } else {
             bookings.push(data);
-            alert("Амжилттай хадгаллаа!");
         }
         localStorage.setItem('np_camp_compact_v2', JSON.stringify(bookings));
         cancelEdit();
