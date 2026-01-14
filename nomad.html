@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <title>Nomad Family Manager</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; padding: 20px; color: #333; }
+        .nav-bar { display: flex; gap: 5px; margin-bottom: 20px; flex-wrap: wrap; }
+        .nav-btn { padding: 8px 15px; text-decoration: none; color: white; background: #7f8c8d; border-radius: 4px; font-weight: bold; font-size: 12px; }
+        .nav-btn.active { background: #795548; } /* Brown */
+        
+        .card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-top: 4px solid #795548; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .row { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+        .col { flex: 1; min-width: 120px; }
+        label { font-weight: bold; font-size: 11px; display: block; margin-bottom: 5px; color: #555; }
+        input, select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 100%; box-sizing: border-box; }
+        .total-box { background: #efebe9; text-align: right; padding: 10px; font-weight: bold; color: #5d4037; border: 1px solid #d7ccc8; }
+        
+        button { cursor: pointer; border: none; padding: 8px 15px; border-radius: 4px; font-weight: bold; }
+        .btn-add { background: #27ae60; color: white; margin-top: 21px; width: 100%; }
+        .btn-save { background: #795548; color: white; width: 100%; margin-top: 10px; padding: 12px; }
+        .btn-schedule { background: #f39c12; color: white; padding: 3px 8px; font-size: 11px; margin-right: 5px; } /* Orange */
+        .btn-delete { background: #c0392b; color: white; padding: 3px 8px; font-size: 11px; }
+        
+        table { width: 100%; border-collapse: collapse; background: white; font-size: 12px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        th { background: #795548; color: white; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="nav-bar">
+        <a href="index.html" class="nav-btn">1. HOTEL</a> <a href="camp.html" class="nav-btn">2. CAMP</a> <a href="restaurant.html" class="nav-btn">3. RESTAURANT</a> <a href="guesthouse.html" class="nav-btn">4. GUEST HOUSE</a> <a href="attraction.html" class="nav-btn">5. ҮЗВЭР</a> <a href="transport.html" class="nav-btn">6. ТЭЭВЭР</a>
+        <a href="nomad.html" class="nav-btn active">7. МАЛЧИН</a>
+    </div>
+
+    <div class="card">
+        <h4>Settings</h4>
+        <div class="row">
+            <div class="col"><label>Шинэ Аялал</label><input type="text" id="newTrip" onkeypress="handleEnter(event, 'trip')"></div>
+            <div class="col" style="flex:0.2"><button class="btn-add" onclick="addOpt('trip')">+</button></div>
+            <div class="col"><label>Шинэ Малчин Айл</label><input type="text" id="newNomad" onkeypress="handleEnter(event, 'nomad')"></div>
+            <div class="col" style="flex:0.2"><button class="btn-add" onclick="addOpt('nomad')">+</button></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>7. Малчин Айл</h3>
+        <input type="hidden" id="editId">
+        <div class="row">
+            <div class="col"><label>Аялал</label><select id="tripSel"></select></div>
+            <div class="col"><label>Малчин Айл</label><select id="nomadSel"></select></div>
+            <div class="col"><label>Ирэх Огноо</label><input type="date" id="inDate"></div>
+            <div class="col"><label>Хоног</label><input type="number" id="days" value="1" oninput="calc()"></div>
+        </div>
+        <div class="row">
+            <div class="col"><label>Жуулчин Тоо</label><input type="number" id="paxF" oninput="calc()"></div>
+            <div class="col"><label>Монгол Тоо</label><input type="number" id="paxM" oninput="calc()"></div>
+            <div class="col"><label>Гэрийн Үнэ (1 хүн)</label><input type="number" id="gerPrice" oninput="calc()"></div>
+            <div class="col"><label>Хоолны Үнэ (Нийт)</label><input type="number" id="foodPrice" oninput="calc()"></div>
+        </div>
+        <hr style="border-top:1px dashed #ccc; margin:10px 0">
+        <h4>Морь / Тэмээ / Нэмэлт</h4>
+        <div class="row">
+            <div class="col"><label>Морь Унах Хүн</label><input type="number" id="horsePax" oninput="calc()"></div>
+            <div class="col"><label>Морины Хөтөч</label><input type="number" id="horseGuide" oninput="calc()"></div>
+            <div class="col"><label>Морь Үнэ (Нэгж)</label><input type="number" id="horsePrice" oninput="calc()"></div>
+            <div class="col"><label>Тэмээ/Бусад Үнэ</label><input type="number" id="otherPrice" oninput="calc()"></div>
+        </div>
+        <div class="row">
+            <div class="col"><label>Нэмэлт (Хорхог)</label><input type="text" id="extraName"></div>
+            <div class="col"><label>Нэмэлт Үнэ</label><input type="number" id="extraPrice" oninput="calc()"></div>
+            <div class="col"><label>Орчуулагч</label><input type="text" id="guide"></div>
+            <div class="col"><label>Утас</label><input type="text" id="phone"></div>
+        </div>
+        <div class="row">
+            <div class="col"><label>Нэхэмжилсэн</label><input type="date" id="inv"></div>
+            <div class="col"><label>Төлсөн</label><input type="date" id="paid"></div>
+        </div>
+        <div class="total-box">НИЙТ: <span id="totalDisplay">0</span> ₮</div>
+        <button class="btn-save" onclick="saveData()">ХАДГАЛАХ</button>
+    </div>
+
+    <div class="card">
+        <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+            <h3>ЖАГСААЛТ</h3>
+            <select id="filterNomad" onchange="renderTable()"><option value="ALL">Бүх Айл</option></select>
+        </div>
+        <table>
+            <thead>
+                <tr><th>X</th> <th>Аялал / Айл</th> <th>Огноо</th> <th>Хүн</th> <th>Морь/Тэмээ</th> <th>Нийт Дүн</th> <th>Хуваарь</th></tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    let trips = JSON.parse(localStorage.getItem('np_trips')) || [];
+    let nomads = JSON.parse(localStorage.getItem('np_nomads')) || [];
+    let data = JSON.parse(localStorage.getItem('np_nomad_v1')) || [];
+
+    window.onload = () => { renderOps(); renderTable(); };
+    function handleEnter(e, t) { if(e.key==='Enter') addOpt(t); }
+    function addOpt(t) {
+        let v = document.getElementById(t==='trip'?'newTrip':'newNomad').value;
+        if(v) { 
+            if(t==='trip'){ trips.push(v); localStorage.setItem('np_trips',JSON.stringify(trips)); }
+            else{ nomads.push(v); localStorage.setItem('np_nomads',JSON.stringify(nomads)); }
+            document.getElementById(t==='trip'?'newTrip':'newNomad').value=''; renderOps();
+        }
+    }
+    function renderOps() {
+        let t=document.getElementById('tripSel'), n=document.getElementById('nomadSel'), f=document.getElementById('filterNomad');
+        t.innerHTML=''; n.innerHTML=''; f.innerHTML='<option value="ALL">Бүх Айл</option>';
+        trips.forEach(x=>t.add(new Option(x,x))); nomads.forEach(x=>{ n.add(new Option(x,x)); f.add(new Option(x,x)); });
+    }
+    function calc() {
+        let pf=parseFloat(document.getElementById('paxF').value)||0, pm=parseFloat(document.getElementById('paxM').value)||0;
+        let days=parseFloat(document.getElementById('days').value)||1, gp=parseFloat(document.getElementById('gerPrice').value)||0;
+        let fp=parseFloat(document.getElementById('foodPrice').value)||0; // Total food price entered manually
+        
+        // Horse: (Pax + Guide) * Price * Days (Assuming Days is same as stay, or usually separate field. Using stay days for now)
+        let hpax=parseFloat(document.getElementById('horsePax').value)||0, hguide=parseFloat(document.getElementById('horseGuide').value)||0;
+        let hprice=parseFloat(document.getElementById('horsePrice').value)||0;
+        let horseTotal = (hpax + hguide) * hprice * days; // Logic: Total horses * Price * Days
+
+        let op=parseFloat(document.getElementById('otherPrice').value)||0;
+        let ep=parseFloat(document.getElementById('extraPrice').value)||0;
+
+        let total = ((pf*gp) + (pm*gp)) * days + fp + horseTotal + op + ep;
+        document.getElementById('totalDisplay').innerText = total.toLocaleString();
+    }
+    function saveData() {
+        let obj = {
+            id: document.getElementById('editId').value || Date.now(),
+            trip: document.getElementById('tripSel').value, nomad: document.getElementById('nomadSel').value,
+            inDate: document.getElementById('inDate').value, days: document.getElementById('days').value,
+            paxF: document.getElementById('paxF').value, paxM: document.getElementById('paxM').value,
+            gerPrice: document.getElementById('gerPrice').value, foodPrice: document.getElementById('foodPrice').value,
+            horsePax: document.getElementById('horsePax').value, horseGuide: document.getElementById('horseGuide').value,
+            horsePrice: document.getElementById('horsePrice').value, otherPrice: document.getElementById('otherPrice').value,
+            extraName: document.getElementById('extraName').value, extraPrice: document.getElementById('extraPrice').value,
+            guide: document.getElementById('guide').value, phone: document.getElementById('phone').value,
+            inv: document.getElementById('inv').value, paid: document.getElementById('paid').value,
+            total: document.getElementById('totalDisplay').innerText
+        };
+        let idx = data.findIndex(x => x.id == obj.id);
+        if(idx > -1) data[idx] = obj; else data.push(obj);
+        localStorage.setItem('np_nomad_v1', JSON.stringify(data));
+        renderTable(); document.querySelectorAll('input').forEach(i => i.value=''); document.getElementById('totalDisplay').innerText='0';
+    }
+    function renderTable() {
+        let tb = document.getElementById('tbody'), f = document.getElementById('filterNomad').value;
+        tb.innerHTML = '';
+        data.sort((a,b)=>a.inDate>b.inDate?1:-1).forEach(x => {
+            if(f!=='ALL' && x.nomad!==f) return;
+            let row = tb.insertRow();
+            row.innerHTML = `<td><button class="btn-delete" onclick="del(${x.id})">X</button></td>
+            <td><b>${x.trip}</b><br>${x.nomad}</td> <td>${x.inDate}<br>(${x.days} хоног)</td>
+            <td>G:${x.paxF} M:${x.paxM}</td>
+            <td>Морь:${parseInt(x.horsePax)+parseInt(x.horseGuide)}<br>Бусад:${x.extraName}</td>
+            <td style="font-weight:bold; color:#795548;">${x.total}</td>
+            <td><button class="btn-schedule" onclick="showSchedule('${x.nomad}','${x.inDate}','${x.paxF}','${x.guide}')">Хуваарь</button></td>`;
+            row.ondblclick = () => loadEdit(x);
+        });
+    }
+    function showSchedule(name, date, pax, guide) {
+        alert(`--- АЙЛД ӨГӨХ ХУВААРЬ ---\n\nАйл: ${name}\nОгноо: ${date}\nЖуулчин: ${pax}\nХөтөч: ${guide}\n\n(Үнийн мэдээлэлгүй)`);
+    }
+    function del(id) { if(confirm('Ustgah?')){ data=data.filter(x=>x.id!=id); localStorage.setItem('np_nomad_v1',JSON.stringify(data)); renderTable(); }}
+    function loadEdit(x) {
+        document.getElementById('editId').value = x.id; document.getElementById('tripSel').value = x.trip;
+        document.getElementById('nomadSel').value = x.nomad; document.getElementById('inDate').value = x.inDate;
+        document.getElementById('days').value = x.days; document.getElementById('paxF').value = x.paxF;
+        document.getElementById('paxM').value = x.paxM; document.getElementById('gerPrice').value = x.gerPrice;
+        document.getElementById('foodPrice').value = x.foodPrice; document.getElementById('horsePax').value = x.horsePax;
+        document.getElementById('horseGuide').value = x.horseGuide; document.getElementById('horsePrice').value = x.horsePrice;
+        document.getElementById('otherPrice').value = x.otherPrice; document.getElementById('extraName').value = x.extraName;
+        document.getElementById('extraPrice').value = x.extraPrice; document.getElementById('guide').value = x.guide;
+        document.getElementById('phone').value = x.phone; document.getElementById('inv').value = x.inv;
+        document.getElementById('paid').value = x.paid; calc();
+    }
+</script>
+</body>
+</html>
