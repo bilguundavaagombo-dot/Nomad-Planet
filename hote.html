@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotel Manager (Adults + Children)</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; padding: 20px; color: #333; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        h3 { margin-top: 0; color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+
+        input, select { padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 15px; width: 100%; box-sizing: border-box; }
+        .row { display: flex; gap: 15px; margin-bottom: 15px; }
+        .col { flex: 1; }
+        label { font-weight: bold; font-size: 13px; display: block; margin-bottom: 5px; color: #555; }
+
+        button { cursor: pointer; border: none; padding: 10px 20px; border-radius: 4px; font-weight: bold; transition: 0.2s; }
+        .btn-add { background-color: #27ae60; color: white; width: 100%; margin-top: 23px; } 
+        .btn-save { background-color: #2980b9; color: white; width: 100%; font-size: 16px; padding: 12px; }
+        .btn-delete { background-color: #e74c3c; color: white; padding: 5px 10px; font-size: 12px; }
+        
+        .settings-box { background-color: #eaeff2; border: 1px solid #d1d8dd; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; font-size: 14px; }
+        th { background-color: #34495e; color: white; }
+        .tag { background: #e1f5fe; color: #0277bd; padding: 3px 8px; border-radius: 10px; font-size: 12px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <div class="card settings-box">
+        <h3>1. Settings</h3>
+        <div class="row">
+            <div class="col">
+                <label>Add New Trip</label>
+                <input type="text" id="newTripInput" placeholder="Ex: Gobi 2026...">
+            </div>
+            <div class="col" style="flex: 0.3;">
+                <button class="btn-add" onclick="addNewOption('trip')">Add</button>
+            </div>
+            
+            <div class="col">
+                <label>Add New Hotel</label>
+                <input type="text" id="newHotelInput" placeholder="Ex: Shangri-La...">
+            </div>
+            <div class="col" style="flex: 0.3;">
+                <button class="btn-add" onclick="addNewOption('hotel')">Add</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>2. New Booking</h3>
+        
+        <div class="row">
+            <div class="col">
+                <label>Select Trip</label>
+                <select id="tripSelect"><option value="" disabled selected>-- Choose Trip --</option></select>
+            </div>
+            <div class="col">
+                <label>Select Hotel</label>
+                <select id="hotelSelect"><option value="" disabled selected>-- Choose Hotel --</option></select>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <label>Adults</label>
+                <input type="number" id="adults" value="1" min="1">
+            </div>
+            <div class="col">
+                <label>Children</label>
+                <input type="number" id="children" value="0" min="0">
+            </div>
+            <div class="col">
+                <label>Room Type</label>
+                <select id="roomType">
+                    <option value="SGL">SGL (Single)</option>
+                    <option value="TWN">TWN (Twin)</option>
+                    <option value="DBL">DBL (Double)</option>
+                    <option value="TRPL">TRPL (Triple)</option>
+                    <option value="FOUR">FOUR (4 Beds)</option>
+                </select>
+            </div>
+            <div class="col">
+                <label>Room Count</label>
+                <input type="number" id="roomCount" value="1" min="1">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <label>Check In (YYYY.MM.DD)</label>
+                <input type="text" id="checkIn" placeholder="2026.01.01" maxlength="10" oninput="formatDate(this); calcNights()">
+            </div>
+            <div class="col">
+                <label>Check Out (YYYY.MM.DD)</label>
+                <input type="text" id="checkOut" placeholder="2026.01.05" maxlength="10" oninput="formatDate(this); calcNights()">
+            </div>
+            <div class="col">
+                <label>Nights (Auto)</label>
+                <input type="text" id="nights" readonly placeholder="0">
+            </div>
+        </div>
+
+        <button class="btn-save" onclick="saveBooking()">SAVE DATA</button>
+    </div>
+
+    <div class="card">
+        <h3>3. Saved Database</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Trip</th>
+                    <th>Hotel</th>
+                    <th>Guests</th>
+                    <th>In / Out</th>
+                    <th>Nights</th>
+                    <th>Room</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+    </div>
+
+</div>
+
+<script>
+    let trips = JSON.parse(localStorage.getItem('np_trips')) || [];
+    let hotels = JSON.parse(localStorage.getItem('np_hotels')) || [];
+    let bookings = JSON.parse(localStorage.getItem('np_bookings')) || [];
+
+    window.onload = function() {
+        renderDropdowns();
+        renderTable();
+    };
+
+    function formatDate(input) {
+        let v = input.value.replace(/[^0-9]/g, '');
+        if (v.length > 4) v = v.slice(0, 4) + '.' + v.slice(4);
+        if (v.length > 7) v = v.slice(0, 7) + '.' + v.slice(7);
+        input.value = v;
+    }
+
+    function calcNights() {
+        let d1Str = document.getElementById('checkIn').value;
+        let d2Str = document.getElementById('checkOut').value;
+        if (d1Str.length === 10 && d2Str.length === 10) {
+            const d1 = new Date(d1Str.replace(/\./g, '-'));
+            const d2 = new Date(d2Str.replace(/\./g, '-'));
+            if (d1 && d2 && d2 > d1) {
+                const diff = Math.abs(d2 - d1);
+                document.getElementById('nights').value = Math.ceil(diff / (1000 * 60 * 60 * 24));
+            } else { document.getElementById('nights').value = 0; }
+        } else { document.getElementById('nights').value = 0; }
+    }
+
+    function addNewOption(type) {
+        if (type === 'trip') {
+            const val = document.getElementById('newTripInput').value;
+            if (val) { trips.push(val); localStorage.setItem('np_trips', JSON.stringify(trips)); document.getElementById('newTripInput').value = ''; renderDropdowns(); }
+        } else if (type === 'hotel') {
+            const val = document.getElementById('newHotelInput').value;
+            if (val) { hotels.push(val); localStorage.setItem('np_hotels', JSON.stringify(hotels)); document.getElementById('newHotelInput').value = ''; renderDropdowns(); }
+        }
+    }
+
+    function renderDropdowns() {
+        const tripSel = document.getElementById('tripSelect');
+        const hotelSel = document.getElementById('hotelSelect');
+        tripSel.innerHTML = '<option value="" disabled selected>-- Choose Trip --</option>';
+        hotelSel.innerHTML = '<option value="" disabled selected>-- Choose Hotel --</option>';
+        trips.forEach(t => { let opt = document.createElement('option'); opt.value = t; opt.innerHTML = t; tripSel.appendChild(opt); });
+        hotels.forEach(h => { let opt = document.createElement('option'); opt.value = h; opt.innerHTML = h; hotelSel.appendChild(opt); });
+    }
+
+    function saveBooking() {
+        const trip = document.getElementById('tripSelect').value;
+        const hotel = document.getElementById('hotelSelect').value;
+        const adults = document.getElementById('adults').value;
+        const children = document.getElementById('children').value;
+        const inDate = document.getElementById('checkIn').value;
+        const outDate = document.getElementById('checkOut').value;
+        const nights = document.getElementById('nights').value;
+        const type = document.getElementById('roomType').value;
+        const count = document.getElementById('roomCount').value;
+
+        if (!trip || !hotel || inDate.length < 10 || outDate.length < 10) {
+            alert("Please fill in all fields correctly.");
+            return;
+        }
+
+        const newBooking = { id: Date.now(), trip, hotel, adults, children, inDate, outDate, nights, type, count };
+        bookings.push(newBooking);
+        localStorage.setItem('np_bookings', JSON.stringify(bookings));
+        renderTable();
+    }
+
+    function renderTable() {
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '';
+        bookings.forEach((b, index) => {
+            let row = tbody.insertRow();
+            row.innerHTML = `
+                <td>${b.trip}</td>
+                <td>${b.hotel}</td>
+                <td><b>${b.adults}</b> Adults, <b>${b.children}</b> Child</td>
+                <td>${b.inDate} <br> ${b.outDate}</td>
+                <td>${b.nights}</td>
+                <td><span class="tag">${b.type}</span> x${b.count}</td>
+                <td><button class="btn-delete" onclick="deleteBooking(${index})">X</button></td>
+            `;
+        });
+    }
+
+    function deleteBooking(index) {
+        if(confirm("Delete this?")) {
+            bookings.splice(index, 1);
+            localStorage.setItem('np_bookings', JSON.stringify(bookings));
+            renderTable();
+        }
+    }
+</script>
+
+</body>
+</html>
