@@ -3,25 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hotel Manager (Enter Key)</title>
+    <title>Hotel Manager (Silent & Food Calc)</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; padding: 20px; color: #333; }
         .container { max-width: 100%; margin: 0 auto; }
         .nav-bar { display: flex; gap: 10px; margin-bottom: 20px; }
         .nav-btn { padding: 10px 20px; text-decoration: none; color: white; background-color: #7f8c8d; border-radius: 4px; font-weight: bold; }
         .nav-btn.active { background-color: #2980b9; }
+
         .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; border-top: 4px solid #2980b9; }
         h3 { margin-top: 0; color: #2c3e50; border-bottom: 1px solid #ddd; padding-bottom: 10px; margin-bottom: 15px; }
         .big-title { font-size: 24px; font-weight: 800; color: #2c3e50; text-transform: uppercase; border-bottom: 3px solid #2980b9; padding-bottom: 10px; margin-bottom: 15px; margin-top: 0; }
         h4 { margin: 10px 0 5px 0; color: #555; font-size: 14px; text-transform: uppercase; border-bottom: 1px dashed #ccc; padding-bottom: 5px;}
+
         .row { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
         .col { flex: 1; min-width: 90px; }
         label { font-weight: bold; font-size: 11px; display: block; margin-bottom: 5px; color: #555; }
         input, select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; width: 100%; box-sizing: border-box; }
         input:focus, select:focus { border-color: #2980b9; outline: none; }
+        
         .room-adder-box { background-color: #f4f6f7; border: 1px solid #d6dbdf; padding: 10px; border-radius: 5px; }
         .added-room-item { background: white; border-bottom: 1px solid #eee; padding: 5px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
+        .remove-icon { color: red; cursor: pointer; font-weight: bold; margin-left: 10px; }
+
         .total-box { background: #eaf2f8; padding: 10px; border: 1px solid #a9cce3; margin-top: 10px; text-align: right; font-size: 18px; font-weight: bold; color: #2980b9; }
+
         button { cursor: pointer; border: none; padding: 10px 20px; border-radius: 4px; font-weight: bold; }
         .btn-add { background-color: #27ae60; color: white; width: 100%; margin-top: 21px; } 
         .btn-plus { background-color: #27ae60; color: white; width: 100%; margin-top: 18px; padding: 8px; }
@@ -30,6 +36,7 @@
         .btn-edit { background-color: #f39c12; color: white; padding: 4px 8px; font-size: 11px; border-radius: 4px; margin-right: 5px; }
         .btn-delete { background-color: #c0392b; color: white; padding: 4px 8px; font-size: 11px; border-radius: 4px; }
         .edit-mode { border: 2px solid #f39c12; background-color: #fffdf6; }
+
         table { width: 100%; border-collapse: collapse; background: white; font-size: 12px; table-layout: auto; }
         th, td { border: 1px solid #ddd; padding: 6px 4px; text-align: center; vertical-align: middle; }
         th { background-color: #2c3e50; color: white; font-weight: 600; font-size: 11px; }
@@ -53,13 +60,9 @@
     <div class="card" style="background-color: #eaf2f8; border-top-color: #5499c7;">
         <h4>Settings</h4>
         <div class="row">
-            <div class="col"><label>Шинэ Аялал</label>
-                <input type="text" id="newTripInput" onkeypress="handleEnter(event, 'trip')">
-            </div>
+            <div class="col"><label>Шинэ Аялал</label><input type="text" id="newTripInput" onkeypress="handleEnter(event, 'trip')"></div>
             <div class="col" style="flex: 0.3;"><button class="btn-add" onclick="addNewOption('trip')">Нэмэх</button></div>
-            <div class="col"><label>Шинэ Буудал</label>
-                <input type="text" id="newHotelInput" onkeypress="handleEnter(event, 'hotel')">
-            </div>
+            <div class="col"><label>Шинэ Буудал</label><input type="text" id="newHotelInput" onkeypress="handleEnter(event, 'hotel')"></div>
             <div class="col" style="flex: 0.3;"><button class="btn-add" onclick="addNewOption('hotel')">Нэмэх</button></div>
         </div>
     </div>
@@ -75,7 +78,7 @@
             <div class="col" style="flex:0.5"><label>Хоног</label><input type="text" id="nights" readonly value="0" style="background:#eee;"></div>
         </div>
         <hr style="border:0; border-top:1px dashed #ddd; margin:10px 0;">
-        <h4>Өрөөний Сонголт (Олон төрөл сонгох)</h4>
+        <h4>Өрөөний Сонголт</h4>
         <div class="room-adder-box">
             <div class="row">
                 <div class="col">
@@ -96,10 +99,10 @@
             <div id="addedRoomsList" style="margin-top:10px;"></div>
         </div>
         <div class="row" style="margin-top:10px;">
-            <div class="col"><label>Нийт Жуулчин</label><input type="number" id="paxCount" value="1"></div>
+            <div class="col"><label>Нийт Жуулчин (Тоо)</label><input type="number" id="paxCount" value="1" oninput="calcTotal()"></div>
         </div>
         <hr style="border:0; border-top:1px dashed #ddd; margin:10px 0;">
-        <h4>Ресторан & Хоол (Тоо x Үнэ)</h4>
+        <h4>Ресторан (Тоо x Үнэ x Жуулчин)</h4>
         <div class="row">
             <div class="col"><label>Өглөө (Тоо)</label><input type="number" id="bfQty" oninput="calcTotal()"></div>
             <div class="col"><label>Өглөө (Үнэ)</label><input type="number" id="bfPrice" oninput="calcTotal()"></div>
@@ -124,16 +127,10 @@
 
     <div class="card">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-            <h3 class="big-title">3. БУУДЛЫН ЖАГСААЛТ (SHEET)</h3>
+            <h3 class="big-title">3. ЖАГСААЛТ (SHEET)</h3>
             <div style="display:flex; gap:10px;">
-                <div style="width: 150px;">
-                    <label>Сараар шүүх:</label>
-                    <input type="month" id="filterMonth" onchange="renderTable()" style="padding:6px;">
-                </div>
-                <div style="width: 200px;">
-                    <label>Буудлаар шүүх:</label>
-                    <select id="filterHotel" onchange="renderTable()"><option value="ALL">Бүх Буудал</option></select>
-                </div>
+                <div style="width: 150px;"><input type="month" id="filterMonth" onchange="renderTable()" style="padding:6px;"></div>
+                <div style="width: 200px;"><select id="filterHotel" onchange="renderTable()"><option value="ALL">Бүх Буудал</option></select></div>
             </div>
         </div>
         <table>
@@ -141,8 +138,8 @@
                 <tr>
                     <th rowspan="2">Үйлдэл</th>
                     <th rowspan="2" style="width:18%">Аялал / Буудал</th>
-                    <th rowspan="2">Өрөөний Төрлүүд</th>
-                    <th rowspan="2" style="width:9%">Огноо (Хон)</th>
+                    <th rowspan="2">Өрөө</th>
+                    <th rowspan="2" style="width:9%">Огноо</th>
                     <th rowspan="2">Байр Дүн</th>
                     <th colspan="2">Өглөө</th>
                     <th colspan="2">Өдөр</th>
@@ -152,9 +149,7 @@
                     <th rowspan="2" style="width:9%">Төлбөр</th>
                 </tr>
                 <tr>
-                    <th>#</th> <th>$</th>
-                    <th>#</th> <th>$</th>
-                    <th>#</th> <th>$</th>
+                    <th>#</th> <th>$</th> <th>#</th> <th>$</th> <th>#</th> <th>$</th>
                 </tr>
             </thead>
             <tbody id="tableBody"></tbody>
@@ -168,17 +163,9 @@
     let bookings = JSON.parse(localStorage.getItem('np_hotel_pro_v3')) || [];
     let currentRoomList = [];
 
-    window.onload = function() {
-        renderDropdowns();
-        renderTable();
-    };
+    window.onload = function() { renderDropdowns(); renderTable(); };
 
-    // --- NEW: HANDLE ENTER KEY ---
-    function handleEnter(e, type) {
-        if(e.key === 'Enter') {
-            addNewOption(type);
-        }
-    }
+    function handleEnter(e, type) { if(e.key === 'Enter') { addNewOption(type); } }
 
     function formatDate(input) {
         let v = input.value.replace(/[^0-9]/g, '');
@@ -195,25 +182,15 @@
             currentRoomList.push({ type: type, count: count, price: price });
             renderRoomList();
             calcTotal();
-        } else {
-            alert("Тоо болон Үнийг оруулна уу!");
         }
     }
 
-    function removeRoomFromList(index) {
-        currentRoomList.splice(index, 1);
-        renderRoomList();
-        calcTotal();
-    }
+    function removeRoomFromList(index) { currentRoomList.splice(index, 1); renderRoomList(); calcTotal(); }
 
     function renderRoomList() {
-        const div = document.getElementById('addedRoomsList');
-        div.innerHTML = "";
+        const div = document.getElementById('addedRoomsList'); div.innerHTML = "";
         currentRoomList.forEach((r, index) => {
-            let item = document.createElement("div");
-            item.className = "added-room-item";
-            item.innerHTML = `<span><b>${r.type}</b> (x${r.count}) - ${r.price.toLocaleString()}₮</span><span class="remove-icon" onclick="removeRoomFromList(${index})">X</span>`;
-            div.appendChild(item);
+            div.innerHTML += `<div class="added-room-item"><span><b>${r.type}</b> (x${r.count}) - ${r.price.toLocaleString()}₮</span><span class="remove-icon" onclick="removeRoomFromList(${index})">X</span></div>`;
         });
     }
 
@@ -231,9 +208,13 @@
         let accomTotal = 0;
         currentRoomList.forEach(r => { accomTotal += (r.price * r.count * nights); });
 
-        const bfTotal = (parseFloat(document.getElementById('bfQty').value) || 0) * (parseFloat(document.getElementById('bfPrice').value) || 0);
-        const lnTotal = (parseFloat(document.getElementById('lnQty').value) || 0) * (parseFloat(document.getElementById('lnPrice').value) || 0);
-        const dnTotal = (parseFloat(document.getElementById('dnQty').value) || 0) * (parseFloat(document.getElementById('dnPrice').value) || 0);
+        // FOOD CALCULATION: Qty * Price * PAX COUNT
+        const pax = parseFloat(document.getElementById('paxCount').value) || 1;
+        
+        const bfTotal = (parseFloat(document.getElementById('bfQty').value) || 0) * (parseFloat(document.getElementById('bfPrice').value) || 0) * pax;
+        const lnTotal = (parseFloat(document.getElementById('lnQty').value) || 0) * (parseFloat(document.getElementById('lnPrice').value) || 0) * pax;
+        const dnTotal = (parseFloat(document.getElementById('dnQty').value) || 0) * (parseFloat(document.getElementById('dnPrice').value) || 0) * pax;
+        
         const extra = parseFloat(document.getElementById('extraPrice').value) || 0;
         const discount = parseFloat(document.getElementById('discount').value) || 0;
         const grand = accomTotal + bfTotal + lnTotal + dnTotal + extra - discount;
@@ -251,9 +232,7 @@
     }
 
     function renderDropdowns() {
-        const tripSel = document.getElementById('tripSelect');
-        const hotelSel = document.getElementById('hotelSelect');
-        const filterSel = document.getElementById('filterHotel');
+        const tripSel = document.getElementById('tripSelect'); const hotelSel = document.getElementById('hotelSelect'); const filterSel = document.getElementById('filterHotel');
         const currTrip = tripSel.value; const currHotel = hotelSel.value; const currFilter = filterSel.value;
         tripSel.innerHTML = ''; hotelSel.innerHTML = ''; filterSel.innerHTML = '<option value="ALL">Бүх Буудал</option>';
         trips.forEach(t => { let opt = document.createElement('option'); opt.value = t; opt.innerHTML = t; tripSel.appendChild(opt); });
@@ -261,14 +240,12 @@
             let opt = document.createElement('option'); opt.value = h; opt.innerHTML = h; hotelSel.appendChild(opt);
             let filterOpt = document.createElement('option'); filterOpt.value = h; filterOpt.innerHTML = h; filterSel.appendChild(filterOpt);
         });
-        if(currTrip) tripSel.value = currTrip;
-        if(currHotel) hotelSel.value = currHotel;
-        if(currFilter) filterSel.value = currFilter;
+        if(currTrip) tripSel.value = currTrip; if(currHotel) hotelSel.value = currHotel; if(currFilter) filterSel.value = currFilter;
     }
 
     function saveBooking() {
         const editId = document.getElementById('editId').value;
-        if (currentRoomList.length === 0) { alert("Ядаж нэг өрөө нэмнэ үү!"); return; }
+        if (currentRoomList.length === 0) return; // Silent return
         const data = {
             id: editId ? parseInt(editId) : Date.now(),
             trip: document.getElementById('tripSelect').value,
@@ -291,10 +268,8 @@
         if (editId) {
             const index = bookings.findIndex(b => b.id == editId);
             if (index !== -1) bookings[index] = data;
-            alert("Амжилттай шинэчиллээ!");
         } else {
             bookings.push(data);
-            alert("Амжилттай хадгаллаа!");
         }
         localStorage.setItem('np_hotel_pro_v3', JSON.stringify(bookings));
         cancelEdit();
@@ -311,7 +286,7 @@
         document.getElementById('checkOut').value = b.checkOut;
         document.getElementById('nights').value = b.nights;
         currentRoomList = b.rooms || []; renderRoomList();
-        document.getElementById('paxCount').value = b.paxCount;
+        document.getElementById('paxCount').value = b.paxCount || 1;
         document.getElementById('bfQty').value = b.bfQty; document.getElementById('bfPrice').value = b.bfPrice;
         document.getElementById('lnQty').value = b.lnQty; document.getElementById('lnPrice').value = b.lnPrice;
         document.getElementById('dnQty').value = b.dnQty; document.getElementById('dnPrice').value = b.dnPrice;
@@ -381,6 +356,5 @@
         }
     }
 </script>
-
 </body>
 </html>
