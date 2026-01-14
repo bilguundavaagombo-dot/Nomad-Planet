@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <title>Transport Manager</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; padding: 20px; color: #333; }
+        .nav-bar { display: flex; gap: 5px; margin-bottom: 20px; flex-wrap: wrap; }
+        .nav-btn { padding: 8px 15px; text-decoration: none; color: white; background: #7f8c8d; border-radius: 4px; font-weight: bold; font-size: 12px; }
+        .nav-btn.active { background: #2c3e50; } /* Navy */
+        
+        .card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-top: 4px solid #2c3e50; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .row { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+        .col { flex: 1; min-width: 120px; }
+        label { font-weight: bold; font-size: 11px; display: block; margin-bottom: 5px; color: #555; }
+        input, select, textarea { padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 100%; box-sizing: border-box; }
+        .total-box { background: #eaecee; text-align: right; padding: 10px; font-weight: bold; color: #2c3e50; border: 1px solid #abb2b9; }
+        
+        button { cursor: pointer; border: none; padding: 8px 15px; border-radius: 4px; font-weight: bold; }
+        .btn-add { background: #27ae60; color: white; margin-top: 21px; width: 100%; }
+        .btn-save { background: #2c3e50; color: white; width: 100%; margin-top: 10px; padding: 12px; }
+        .btn-delete { background: #c0392b; color: white; padding: 3px 8px; font-size: 11px; }
+        
+        table { width: 100%; border-collapse: collapse; background: white; font-size: 12px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        th { background: #2c3e50; color: white; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="nav-bar">
+        <a href="index.html" class="nav-btn">1. HOTEL</a> <a href="camp.html" class="nav-btn">2. CAMP</a> <a href="restaurant.html" class="nav-btn">3. RESTAURANT</a> <a href="guesthouse.html" class="nav-btn">4. GUEST HOUSE</a> <a href="attraction.html" class="nav-btn">5. ҮЗВЭР</a>
+        <a href="transport.html" class="nav-btn active">6. ТЭЭВЭР</a> <a href="nomad.html" class="nav-btn">7. МАЛЧИН</a>
+    </div>
+
+    <div class="card">
+        <h4>Settings</h4>
+        <div class="row">
+            <div class="col"><label>Шинэ Аялал</label><input type="text" id="newTrip" onkeypress="handleEnter(event, 'trip')"></div>
+            <div class="col" style="flex:0.2"><button class="btn-add" onclick="addOpt('trip')">+</button></div>
+            <div class="col"><label>Шинэ Тээвэрлэгч</label><input type="text" id="newTrans" onkeypress="handleEnter(event, 'trans')"></div>
+            <div class="col" style="flex:0.2"><button class="btn-add" onclick="addOpt('trans')">+</button></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>6. Тээвэр (Онгоц/Галт тэрэг/Автобус)</h3>
+        <input type="hidden" id="editId">
+        <div class="row">
+            <div class="col"><label>Аялал</label><select id="tripSel"></select></div>
+            <div class="col"><label>Тээвэрлэгч</label><select id="transSel"></select></div>
+            <div class="col"><label>Төрөл</label><select id="type"><option>Онгоц</option><option>Галт тэрэг</option><option>Автобус</option></select></div>
+            <div class="col"><label>Чиглэл (Маршрут)</label><input type="text" id="route" placeholder="УБ - Мөрөн..."></div>
+        </div>
+        <div class="row">
+            <div class="col"><label>Явах Огноо</label><input type="date" id="date"></div>
+            <div class="col"><label>Цаг</label><input type="time" id="time"></div>
+            <div class="col"><label>Том хүн (Тоо)</label><input type="number" id="adlQty" oninput="calc()"></div>
+            <div class="col"><label>Том хүн (Үнэ)</label><input type="number" id="adlPrice" oninput="calc()"></div>
+            <div class="col"><label>Хүүхэд (Тоо)</label><input type="number" id="chdQty" oninput="calc()"></div>
+            <div class="col"><label>Хүүхэд (Үнэ)</label><input type="number" id="chdPrice" oninput="calc()"></div>
+        </div>
+        <div class="row">
+            <div class="col" style="flex:2;">
+                <label>Зорчигчдын Мэдээлэл (Нэр, Пасспорт, Төрсөн огноо)</label>
+                <textarea id="paxList" rows="3" placeholder="1. Batbold (E12345, 1990.01.01)&#10;2. Smith (P98765, 1995.05.05)"></textarea>
+            </div>
+            <div class="col">
+                <label>Орчуулагч</label><input type="text" id="guide">
+                <label style="margin-top:5px">Нэхэмжилсэн</label><input type="date" id="inv">
+            </div>
+            <div class="col">
+                <label>Төлсөн</label><input type="date" id="paid">
+            </div>
+        </div>
+        <div class="total-box">НИЙТ: <span id="totalDisplay">0</span> ₮</div>
+        <button class="btn-save" onclick="saveData()">ХАДГАЛАХ</button>
+    </div>
+
+    <div class="card">
+        <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+            <h3>ЖАГСААЛТ</h3>
+            <select id="filterTrans" onchange="renderTable()"><option value="ALL">Бүх Тээвэр</option></select>
+        </div>
+        <table>
+            <thead>
+                <tr><th>X</th> <th>Аялал / Тээвэр</th> <th>Чиглэл / Огноо</th> <th>Зорчигчид</th> <th>Үнэ</th> <th>Жагсаалт</th> <th>Төлбөр</th></tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    let trips = JSON.parse(localStorage.getItem('np_trips')) || [];
+    let trans = JSON.parse(localStorage.getItem('np_trans')) || [];
+    let data = JSON.parse(localStorage.getItem('np_transport_v1')) || [];
+
+    window.onload = () => { renderOps(); renderTable(); };
+    function handleEnter(e, t) { if(e.key==='Enter') addOpt(t); }
+    function addOpt(t) {
+        let v = document.getElementById(t==='trip'?'newTrip':'newTrans').value;
+        if(v) { 
+            if(t==='trip'){ trips.push(v); localStorage.setItem('np_trips',JSON.stringify(trips)); }
+            else{ trans.push(v); localStorage.setItem('np_trans',JSON.stringify(trans)); }
+            document.getElementById(t==='trip'?'newTrip':'newTrans').value=''; renderOps();
+        }
+    }
+    function renderOps() {
+        let t=document.getElementById('tripSel'), tr=document.getElementById('transSel'), f=document.getElementById('filterTrans');
+        t.innerHTML=''; tr.innerHTML=''; f.innerHTML='<option value="ALL">Бүх Тээвэр</option>';
+        trips.forEach(x=>t.add(new Option(x,x))); trans.forEach(x=>{ tr.add(new Option(x,x)); f.add(new Option(x,x)); });
+    }
+    function calc() {
+        let aq=document.getElementById('adlQty').value||0, ap=document.getElementById('adlPrice').value||0;
+        let cq=document.getElementById('chdQty').value||0, cp=document.getElementById('chdPrice').value||0;
+        document.getElementById('totalDisplay').innerText = ((aq*ap)+(cq*cp)).toLocaleString();
+    }
+    function saveData() {
+        let obj = {
+            id: document.getElementById('editId').value || Date.now(),
+            trip: document.getElementById('tripSel').value, trans: document.getElementById('transSel').value,
+            type: document.getElementById('type').value, route: document.getElementById('route').value,
+            date: document.getElementById('date').value, time: document.getElementById('time').value,
+            adlQty: document.getElementById('adlQty').value, adlPrice: document.getElementById('adlPrice').value,
+            chdQty: document.getElementById('chdQty').value, chdPrice: document.getElementById('chdPrice').value,
+            paxList: document.getElementById('paxList').value, guide: document.getElementById('guide').value,
+            inv: document.getElementById('inv').value, paid: document.getElementById('paid').value,
+            total: document.getElementById('totalDisplay').innerText
+        };
+        let idx = data.findIndex(x => x.id == obj.id);
+        if(idx > -1) data[idx] = obj; else data.push(obj);
+        localStorage.setItem('np_transport_v1', JSON.stringify(data));
+        renderTable(); document.querySelectorAll('input, textarea').forEach(i => i.value=''); document.getElementById('totalDisplay').innerText='0';
+    }
+    function renderTable() {
+        let tb = document.getElementById('tbody'), f = document.getElementById('filterTrans').value;
+        tb.innerHTML = '';
+        data.sort((a,b)=>a.date>b.date?1:-1).forEach(x => {
+            if(f!=='ALL' && x.trans!==f) return;
+            let row = tb.insertRow();
+            row.innerHTML = `<td><button class="btn-delete" onclick="del(${x.id})">X</button></td>
+            <td><b>${x.trip}</b><br>${x.trans} (${x.type})</td>
+            <td>${x.route}<br>${x.date} ${x.time}</td>
+            <td>Adl:${x.adlQty} Chd:${x.chdQty}</td>
+            <td style="font-weight:bold">${x.total}</td>
+            <td style="font-size:10px; white-space:pre-wrap; text-align:left; max-width:200px;">${x.paxList}</td>
+            <td>Н:${x.inv}<br>Т:${x.paid}</td>`;
+            row.ondblclick = () => loadEdit(x);
+        });
+    }
+    function del(id) { if(confirm('Ustgah?')){ data=data.filter(x=>x.id!=id); localStorage.setItem('np_transport_v1',JSON.stringify(data)); renderTable(); }}
+    function loadEdit(x) {
+        document.getElementById('editId').value = x.id; document.getElementById('tripSel').value = x.trip;
+        document.getElementById('transSel').value = x.trans; document.getElementById('type').value = x.type;
+        document.getElementById('route').value = x.route; document.getElementById('date').value = x.date;
+        document.getElementById('time').value = x.time; document.getElementById('adlQty').value = x.adlQty;
+        document.getElementById('adlPrice').value = x.adlPrice; document.getElementById('chdQty').value = x.chdQty;
+        document.getElementById('chdPrice').value = x.chdPrice; document.getElementById('paxList').value = x.paxList;
+        document.getElementById('guide').value = x.guide; document.getElementById('inv').value = x.inv;
+        document.getElementById('paid').value = x.paid; calc();
+    }
+</script>
+</body>
+</html>
