@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Manager</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; padding: 20px; color: #333; }
+        .container { max-width: 100%; margin: 0 auto; }
+        
+        /* Navigation */
+        .nav-bar { display: flex; gap: 10px; margin-bottom: 20px; }
+        .nav-btn { padding: 10px 20px; text-decoration: none; color: white; background-color: #7f8c8d; border-radius: 4px; font-weight: bold; }
+        .nav-btn.active { background-color: #e74c3c; } /* Red for Restaurant */
+
+        /* Red Theme */
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; border-top: 4px solid #e74c3c; }
+        
+        h3 { margin-top: 0; color: #c0392b; border-bottom: 1px solid #ddd; padding-bottom: 10px; margin-bottom: 15px; }
+        
+        .big-title { 
+            font-size: 24px; font-weight: 800; color: #c0392b; 
+            text-transform: uppercase; border-bottom: 3px solid #e74c3c; 
+            padding-bottom: 10px; margin-bottom: 15px; margin-top: 0;
+        }
+
+        h4 { margin: 10px 0 5px 0; color: #555; font-size: 14px; text-transform: uppercase; border-bottom: 1px dashed #ccc; padding-bottom: 5px;}
+
+        .row { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+        .col { flex: 1; min-width: 100px; }
+        label { font-weight: bold; font-size: 11px; display: block; margin-bottom: 5px; color: #555; }
+        input, select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; width: 100%; box-sizing: border-box; }
+        input:focus, select:focus { border-color: #e74c3c; outline: none; }
+        
+        .edit-mode { border: 2px solid #f39c12; background-color: #fffdf6; }
+        .total-box { background: #fadbd8; padding: 10px; border: 1px solid #f1948a; margin-top: 10px; text-align: right; font-size: 18px; font-weight: bold; color: #c0392b; }
+
+        button { cursor: pointer; border: none; padding: 10px 20px; border-radius: 4px; font-weight: bold; }
+        .btn-add { background-color: #27ae60; color: white; width: 100%; margin-top: 21px; } 
+        .btn-save { background-color: #c0392b; color: white; width: 100%; font-size: 16px; padding: 12px; margin-top: 10px;}
+        .btn-update { background-color: #f39c12; color: white; width: 100%; font-size: 16px; padding: 12px; margin-top: 10px;} 
+        .btn-edit { background-color: #f39c12; color: white; padding: 4px 8px; font-size: 11px; border-radius: 4px; margin-right: 5px; }
+        .btn-delete { background-color: #c0392b; color: white; padding: 4px 8px; font-size: 11px; border-radius: 4px; }
+
+        table { width: 100%; border-collapse: collapse; background: white; font-size: 12px; table-layout: auto; }
+        th, td { border: 1px solid #ddd; padding: 8px 5px; text-align: center; vertical-align: middle; }
+        th { background-color: #c0392b; color: white; font-weight: 600; font-size: 11px; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        tr:hover { background-color: #fce4ec; }
+        
+        .col-money { font-weight: bold; color: #2c3e50; background-color: #f4f6f7; }
+        .col-total { font-weight: bold; color: #c0392b; background-color: #fadbd8; font-size: 14px; }
+        .info-cell { text-align: left; font-size: 12px; line-height: 1.4; }
+        .date-cell { font-size: 11px; color: #666; line-height: 1.3; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <div class="nav-bar">
+        <a href="index.html" class="nav-btn">1. HOTEL</a>
+        <a href="camp.html" class="nav-btn">2. CAMP</a>
+        <a href="restaurant.html" class="nav-btn active">3. RESTAURANT</a>
+    </div>
+
+    <div class="card" style="background-color: #fdedec; border-top-color: #e74c3c;">
+        <h4>Settings (Enter дарж нэмнэ)</h4>
+        <div class="row">
+            <div class="col"><label>Шинэ Аялал</label><input type="text" id="newTripInput" onkeypress="handleEnter(event, 'trip')"></div>
+            <div class="col" style="flex: 0.3;"><button class="btn-add" onclick="addNewOption('trip')">Нэмэх</button></div>
+            
+            <div class="col"><label>Шинэ Ресторан</label><input type="text" id="newRestInput" onkeypress="handleEnter(event, 'restaurant')"></div>
+            <div class="col" style="flex: 0.3;"><button class="btn-add" onclick="addNewOption('restaurant')">Нэмэх</button></div>
+        </div>
+        
+        <div class="row" style="border-top:1px dashed #e6b0aa; padding-top:10px; margin-top:10px;">
+            <div class="col"><label>Шинэ Орчуулагч (Нэр)</label><input type="text" id="newGuideName"></div>
+            <div class="col"><label>Утасны Дугаар</label><input type="text" id="newGuidePhone"></div>
+            <div class="col" style="flex: 0.3;"><button class="btn-add" onclick="addNewGuide()">Хадгалах</button></div>
+        </div>
+    </div>
+
+    <div class="card" id="bookingFormCard">
+        <h3 id="formTitle">3. Ресторан Захиалга</h3>
+        <input type="hidden" id="editId" value="">
+        
+        <div class="row">
+            <div class="col"><label>Аяллын нэр</label><select id="tripSelect"></select></div>
+            <div class="col"><label>Рестораны нэр</label><select id="restSelect"></select></div>
+            <div class="col"><label>Огноо (Y.M.D)</label><input type="text" id="dateInput" placeholder="2026.08.10" oninput="formatDate(this)"></div>
+            <div class="col"><label>Цаг (H:M)</label><input type="time" id="timeInput"></div>
+        </div>
+
+        <hr style="border:0; border-top:1px dashed #ddd; margin:10px 0;">
+
+        <h4>Хүний тоо & Меню</h4>
+        <div class="row">
+            <div class="col"><label>Жуулчин Тоо</label><input type="number" id="paxForeign" value="0" oninput="calcTotal()"></div>
+            <div class="col"><label>Монгол Тоо</label><input type="number" id="paxMongol" value="0" oninput="calcTotal()"></div>
+            <div class="col" style="flex:2;"><label>Меню Сонголт</label><input type="text" id="menuName" placeholder="Жнь: Стейк, Салат..."></div>
+            <div class="col"><label>Меню Үнэ</label><input type="number" id="menuPrice" placeholder="Үнэ..." oninput="calcTotal()"></div>
+        </div>
+
+        <hr style="border:0; border-top:1px dashed #ddd; margin:10px 0;">
+
+        <h4>Орчуулагч & Төлбөр</h4>
+        <div class="row">
+            <div class="col"><label>Орчуулагч Сонгох</label><select id="guideSelect" onchange="fillGuidePhone()"><option value="">Сонгоно уу...</option></select></div>
+            <div class="col"><label>Утас (Auto)</label><input type="text" id="guidePhone"></div>
+            
+            <div class="col"><label style="color:red;">Хөнгөлөлт (-)</label><input type="number" id="discount" value="0" style="color:red;" oninput="calcTotal()"></div>
+        </div>
+
+        <div class="row">
+            <div class="col"><label>Нэхэмжилсэн</label><input type="text" id="invDate" placeholder="2026.08.12" oninput="formatDate(this)"></div>
+            <div class="col"><label>Төлсөн</label><input type="text" id="paidDate" placeholder="2026.08.15" oninput="formatDate(this)"></div>
+        </div>
+
+        <div class="total-box">НИЙТ ТӨЛБӨР: <span id="grandTotal">0</span> ₮</div>
+        
+        <button id="saveBtn" class="btn-save" onclick="saveBooking()">ХАДГАЛАХ</button>
+        <button id="cancelBtn" class="btn-delete" style="display:none; margin-top:10px; padding:12px;" onclick="cancelEdit()">ЦУЦЛАХ</button>
+    </div>
+
+    <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+            <h3 class="big-title">3. РЕСТОРАН ЖАГСААЛТ (SHEET)</h3>
+            <div style="display:flex; gap:10px;">
+                <div style="width: 150px;">
+                    <label>Сараар шүүх:</label>
+                    <input type="month" id="filterMonth" onchange="renderTable()" style="padding:6px;">
+                </div>
+                <div style="width: 200px;">
+                    <label>Ресторанаар шүүх:</label>
+                    <select id="filterRest" onchange="renderTable()"><option value="ALL">Бүх Ресторан</option></select>
+                </div>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th rowspan="2">Үйлдэл</th>
+                    <th rowspan="2" style="width:15%">Аялал / Ресторан</th>
+                    <th rowspan="2" style="width:10%">Огноо / Цаг</th>
+                    <th colspan="2">Хүний Тоо</th>
+                    <th rowspan="2" style="width:20%">Меню / Орчуулагч</th>
+                    <th rowspan="2">Нэгж Үнэ</th>
+                    <th rowspan="2">Хөнгөлөлт</th>
+                    <th rowspan="2">Нийт Дүн</th>
+                    <th rowspan="2" style="width:10%">Төлбөр</th>
+                </tr>
+                <tr>
+                    <th>Гадаад</th> <th>Монгол</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+    </div>
+
+</div>
+
+<script>
+    // Storage Keys
+    let trips = JSON.parse(localStorage.getItem('np_trips')) || [];
+    let restaurants = JSON.parse(localStorage.getItem('np_restaurants')) || [];
+    let guides = JSON.parse(localStorage.getItem('np_guides')) || []; // [{name: "Name", phone: "9911"}]
+    let bookings = JSON.parse(localStorage.getItem('np_restaurant_v1')) || [];
+
+    window.onload = function() {
+        renderDropdowns();
+        renderTable();
+    };
+
+    function handleEnter(e, type) { if(e.key === 'Enter') { addNewOption(type); } }
+
+    function formatDate(input) {
+        let v = input.value.replace(/[^0-9]/g, '');
+        if (v.length > 4) v = v.slice(0, 4) + '.' + v.slice(4);
+        if (v.length > 7) v = v.slice(0, 7) + '.' + v.slice(7);
+        input.value = v;
+    }
+
+    // --- Guide Logic ---
+    function addNewGuide() {
+        const name = document.getElementById('newGuideName').value;
+        const phone = document.getElementById('newGuidePhone').value;
+        if(name) {
+            guides.push({ name: name, phone: phone });
+            localStorage.setItem('np_guides', JSON.stringify(guides));
+            document.getElementById('newGuideName').value = '';
+            document.getElementById('newGuidePhone').value = '';
+            renderDropdowns(); // Refresh guide select
+        }
+    }
+
+    function fillGuidePhone() {
+        const guideName = document.getElementById('guideSelect').value;
+        const guide = guides.find(g => g.name === guideName);
+        if(guide) {
+            document.getElementById('guidePhone').value = guide.phone;
+        } else {
+            document.getElementById('guidePhone').value = '';
+        }
+    }
+    // ------------------
+
+    function calcTotal() {
+        const paxF = parseFloat(document.getElementById('paxForeign').value) || 0;
+        const paxM = parseFloat(document.getElementById('paxMongol').value) || 0;
+        const price = parseFloat(document.getElementById('menuPrice').value) || 0;
+        const discount = parseFloat(document.getElementById('discount').value) || 0;
+
+        const total = ((paxF + paxM) * price) - discount;
+        document.getElementById('grandTotal').innerText = total.toLocaleString();
+    }
+
+    function addNewOption(type) {
+        if (type === 'trip') {
+            const val = document.getElementById('newTripInput').value;
+            if (val) { trips.push(val); localStorage.setItem('np_trips', JSON.stringify(trips)); document.getElementById('newTripInput').value = ''; renderDropdowns(); }
+        } else if (type === 'restaurant') {
+            const val = document.getElementById('newRestInput').value;
+            if (val) { restaurants.push(val); localStorage.setItem('np_restaurants', JSON.stringify(restaurants)); document.getElementById('newRestInput').value = ''; renderDropdowns(); }
+        }
+    }
+
+    function renderDropdowns() {
+        const tripSel = document.getElementById('tripSelect');
+        const restSel = document.getElementById('restSelect');
+        const filterSel = document.getElementById('filterRest');
+        const guideSel = document.getElementById('guideSelect');
+        
+        const currTrip = tripSel.value;
+        const currRest = restSel.value;
+        const currFilter = filterSel.value;
+        const currGuide = guideSel.value;
+
+        tripSel.innerHTML = ''; restSel.innerHTML = ''; 
+        filterSel.innerHTML = '<option value="ALL">Бүх Ресторан</option>';
+        guideSel.innerHTML = '<option value="">Сонгоно уу...</option>';
+        
+        trips.forEach(t => { let opt = document.createElement('option'); opt.value = t; opt.innerHTML = t; tripSel.appendChild(opt); });
+        restaurants.forEach(h => { 
+            let opt = document.createElement('option'); opt.value = h; opt.innerHTML = h; restSel.appendChild(opt);
+            let filterOpt = document.createElement('option'); filterOpt.value = h; filterOpt.innerHTML = h; filterSel.appendChild(filterOpt);
+        });
+        guides.forEach(g => {
+            let opt = document.createElement('option'); opt.value = g.name; opt.innerHTML = g.name; guideSel.appendChild(opt);
+        });
+
+        if(currTrip) tripSel.value = currTrip;
+        if(currRest) restSel.value = currRest;
+        if(currFilter) filterSel.value = currFilter;
+        if(currGuide) guideSel.value = currGuide;
+    }
+
+    function saveBooking() {
+        const editId = document.getElementById('editId').value;
+        const data = {
+            id: editId ? parseInt(editId) : Date.now(),
+            trip: document.getElementById('tripSelect').value,
+            restaurant: document.getElementById('restSelect').value,
+            date: document.getElementById('dateInput').value,
+            time: document.getElementById('timeInput').value,
+            
+            paxForeign: document.getElementById('paxForeign').value,
+            paxMongol: document.getElementById('paxMongol').value,
+            menuName: document.getElementById('menuName').value,
+            menuPrice: document.getElementById('menuPrice').value,
+            
+            guideName: document.getElementById('guideSelect').value,
+            guidePhone: document.getElementById('guidePhone').value,
+            discount: document.getElementById('discount').value,
+            
+            grandTotal: document.getElementById('grandTotal').innerText,
+            invDate: document.getElementById('invDate').value,
+            paidDate: document.getElementById('paidDate').value
+        };
+
+        if (editId) {
+            const index = bookings.findIndex(b => b.id == editId);
+            if (index !== -1) bookings[index] = data;
+        } else {
+            bookings.push(data);
+        }
+
+        localStorage.setItem('np_restaurant_v1', JSON.stringify(bookings));
+        cancelEdit();
+        renderTable();
+    }
+
+    function editBooking(id) {
+        const b = bookings.find(item => item.id == id);
+        if (!b) return;
+
+        document.getElementById('editId').value = b.id;
+        document.getElementById('tripSelect').value = b.trip;
+        document.getElementById('restSelect').value = b.restaurant;
+        document.getElementById('dateInput').value = b.date;
+        document.getElementById('timeInput').value = b.time;
+        
+        document.getElementById('paxForeign').value = b.paxForeign;
+        document.getElementById('paxMongol').value = b.paxMongol;
+        document.getElementById('menuName').value = b.menuName;
+        document.getElementById('menuPrice').value = b.menuPrice;
+        
+        document.getElementById('guideSelect').value = b.guideName;
+        document.getElementById('guidePhone').value = b.guidePhone;
+        document.getElementById('discount').value = b.discount;
+        
+        document.getElementById('grandTotal').innerText = b.grandTotal;
+        document.getElementById('invDate').value = b.invDate;
+        document.getElementById('paidDate').value = b.paidDate;
+
+        document.getElementById('saveBtn').innerText = "ШИНЭЧЛЭХ";
+        document.getElementById('saveBtn').className = "btn-update";
+        document.getElementById('cancelBtn').style.display = "inline-block";
+        document.getElementById('bookingFormCard').classList.add('edit-mode');
+        document.getElementById('formTitle').innerText = "3. Ресторан Захиалга (Засах)";
+        document.getElementById('bookingFormCard').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function cancelEdit() {
+        const inputs = document.querySelectorAll('#bookingFormCard input');
+        inputs.forEach(i => i.value = '');
+        document.getElementById('grandTotal').innerText = '0';
+        document.getElementById('discount').value = 0;
+        document.getElementById('paxForeign').value = 0;
+        document.getElementById('paxMongol').value = 0;
+        document.getElementById('guideSelect').value = "";
+        
+        document.getElementById('editId').value = "";
+        document.getElementById('saveBtn').innerText = "ХАДГАЛАХ";
+        document.getElementById('saveBtn').className = "btn-save";
+        document.getElementById('cancelBtn').style.display = "none";
+        document.getElementById('bookingFormCard').classList.remove('edit-mode');
+        document.getElementById('formTitle').innerText = "3. Ресторан Захиалга";
+    }
+
+    function renderTable() {
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '';
+        
+        const filterRest = document.getElementById('filterRest').value;
+        const filterMonth = document.getElementById('filterMonth').value;
+
+        bookings.sort((a, b) => (a.date > b.date) ? 1 : -1);
+
+        bookings.forEach((b) => {
+            if (filterRest !== "ALL" && b.restaurant !== filterRest) return;
+            
+            if (filterMonth) {
+                let dateDash = b.date.replace(/\./g, '-');
+                if (!dateDash.startsWith(filterMonth)) return;
+            }
+
+            let row = tbody.insertRow();
+            
+            row.innerHTML = `
+                <td>
+                    <button class="btn-edit" onclick="editBooking(${b.id})">Зас</button>
+                    <button class="btn-delete" onclick="deleteBooking(${b.id})">X</button>
+                </td>
+                
+                <td class="info-cell"><b>${b.trip}</b><br>${b.restaurant}</td>
+                
+                <td class="info-cell" style="text-align:center">${b.date}<br><b>${b.time}</b></td>
+                
+                <td>${b.paxForeign}</td>
+                <td>${b.paxMongol}</td>
+                
+                <td class="info-cell">${b.menuName}<br><span style="font-size:10px; color:#555;">Guide: ${b.guideName} (${b.guidePhone})</span></td>
+                
+                <td class="col-money">${parseInt(b.menuPrice).toLocaleString()}</td>
+                <td style="color:red">-${b.discount}</td>
+                
+                <td class="col-total">${b.grandTotal}</td>
+                
+                <td class="date-cell">Н: ${b.invDate}<br>Т: ${b.paidDate}</td>
+            `;
+        });
+    }
+
+    function deleteBooking(id) {
+        if(confirm("Устгах уу?")) {
+            const index = bookings.findIndex(b => b.id == id);
+            if (index > -1) {
+                bookings.splice(index, 1);
+                localStorage.setItem('np_restaurant_v1', JSON.stringify(bookings));
+                renderTable();
+            }
+        }
+    }
+</script>
+
+</body>
+</html>
