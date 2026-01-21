@@ -3,27 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Restaurant Manager</title>
+    <title>Restaurant Manager (Trip Sync & Menu Memory)</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; padding: 20px; color: #333; }
         .container { max-width: 100%; margin: 0 auto; }
         
-        /* Navigation */
         .nav-bar { display: flex; gap: 10px; margin-bottom: 20px; }
         .nav-btn { padding: 10px 20px; text-decoration: none; color: white; background-color: #7f8c8d; border-radius: 4px; font-weight: bold; }
-        .nav-btn.active { background-color: #e74c3c; } /* Red for Restaurant */
+        .nav-btn.active { background-color: #e74c3c; }
 
-        /* Red Theme */
         .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; border-top: 4px solid #e74c3c; }
-        
         h3 { margin-top: 0; color: #c0392b; border-bottom: 1px solid #ddd; padding-bottom: 10px; margin-bottom: 15px; }
-        
-        .big-title { 
-            font-size: 24px; font-weight: 800; color: #c0392b; 
-            text-transform: uppercase; border-bottom: 3px solid #e74c3c; 
-            padding-bottom: 10px; margin-bottom: 15px; margin-top: 0;
-        }
-
+        .big-title { font-size: 24px; font-weight: 800; color: #c0392b; text-transform: uppercase; border-bottom: 3px solid #e74c3c; padding-bottom: 10px; margin-bottom: 15px; margin-top: 0; }
         h4 { margin: 10px 0 5px 0; color: #555; font-size: 14px; text-transform: uppercase; border-bottom: 1px dashed #ccc; padding-bottom: 5px;}
 
         .row { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
@@ -47,7 +38,6 @@
         th { background-color: #c0392b; color: white; font-weight: 600; font-size: 11px; }
         tr:nth-child(even) { background-color: #f9f9f9; }
         tr:hover { background-color: #fce4ec; }
-        
         .col-money { font-weight: bold; color: #2c3e50; background-color: #f4f6f7; }
         .col-total { font-weight: bold; color: #c0392b; background-color: #fadbd8; font-size: 14px; }
         .info-cell { text-align: left; font-size: 12px; line-height: 1.4; }
@@ -66,6 +56,7 @@
         <a href="attraction.html" class="nav-btn">5. ҮЗВЭР</a>
         <a href="transport.html" class="nav-btn">6. ТЭЭВЭР</a>
         <a href="nomad.html" class="nav-btn">7. МАЛЧИН</a>
+        <a href="summary.html" class="nav-btn">8. НЭГДСЭН ДҮН</a>
     </div>
 
     <div class="card" style="background-color: #fdedec; border-top-color: #e74c3c;">
@@ -90,19 +81,25 @@
         <input type="hidden" id="editId" value="">
         
         <div class="row">
-            <div class="col"><label>Аяллын нэр</label><select id="tripSelect"></select></div>
+            <div class="col"><label>Аяллын нэр</label><select id="tripSelect" onchange="autoFillPax()"></select></div>
             <div class="col"><label>Рестораны нэр</label><select id="restSelect"></select></div>
-            <div class="col"><label>Огноо (Y.M.D)</label><input type="text" id="dateInput" placeholder="2026.08.10" oninput="formatDate(this)"></div>
-            <div class="col"><label>Цаг (H:M)</label><input type="time" id="timeInput"></div>
+            <div class="col"><label>Огноо</label><input type="date" id="dateInput"></div>
+            <div class="col"><label>Цаг</label><input type="time" id="timeInput"></div>
         </div>
 
         <hr style="border:0; border-top:1px dashed #ddd; margin:10px 0;">
 
-        <h4>Хүний тоо & Меню</h4>
+        <h4>Хүний тоо & Меню (Auto-Fill Price)</h4>
         <div class="row">
-            <div class="col"><label>Жуулчин Тоо</label><input type="number" id="paxForeign" value="0" oninput="calcTotal()"></div>
-            <div class="col"><label>Монгол Тоо</label><input type="number" id="paxMongol" value="0" oninput="calcTotal()"></div>
-            <div class="col" style="flex:2;"><label>Меню Сонголт</label><input type="text" id="menuName" placeholder="Жнь: Стейк, Салат..."></div>
+            <div class="col"><label>Жуулчин Тоо</label><input type="number" id="paxForeign" placeholder="Тоо..." oninput="calcTotal()"></div>
+            <div class="col"><label>Монгол Тоо</label><input type="number" id="paxMongol" placeholder="Тоо..." oninput="calcTotal()"></div>
+            
+            <div class="col" style="flex:2;">
+                <label>Меню Сонголт</label>
+                <input type="text" id="menuName" list="menuList" placeholder="Меню бичих эсвэл сонгох..." onchange="suggestMenuPrice()">
+                <datalist id="menuList"></datalist>
+            </div>
+            
             <div class="col"><label>Меню Үнэ</label><input type="number" id="menuPrice" placeholder="Үнэ..." oninput="calcTotal()"></div>
         </div>
 
@@ -111,14 +108,14 @@
         <h4>Орчуулагч & Төлбөр</h4>
         <div class="row">
             <div class="col"><label>Орчуулагч Сонгох</label><select id="guideSelect" onchange="fillGuidePhone()"><option value="">Сонгоно уу...</option></select></div>
-            <div class="col"><label>Утас (Auto)</label><input type="text" id="guidePhone"></div>
+            <div class="col"><label>Утас (Auto)</label><input type="text" id="guidePhone" placeholder="Утас..."></div>
             
-            <div class="col"><label style="color:red;">Хөнгөлөлт (-)</label><input type="number" id="discount" value="0" style="color:red;" oninput="calcTotal()"></div>
+            <div class="col"><label style="color:red;">Хөнгөлөлт (-)</label><input type="number" id="discount" placeholder="0" style="color:red;" oninput="calcTotal()"></div>
         </div>
 
         <div class="row">
-            <div class="col"><label>Нэхэмжилсэн</label><input type="text" id="invDate" placeholder="2026.08.12" oninput="formatDate(this)"></div>
-            <div class="col"><label>Төлсөн</label><input type="text" id="paidDate" placeholder="2026.08.15" oninput="formatDate(this)"></div>
+            <div class="col"><label>Нэхэмжилсэн</label><input type="date" id="invDate"></div>
+            <div class="col"><label>Төлсөн</label><input type="date" id="paidDate"></div>
         </div>
 
         <div class="total-box">НИЙТ ТӨЛБӨР: <span id="grandTotal">0</span> ₮</div>
@@ -169,22 +166,89 @@
     // Storage Keys
     let trips = JSON.parse(localStorage.getItem('np_trips')) || [];
     let restaurants = JSON.parse(localStorage.getItem('np_restaurants')) || [];
-    let guides = JSON.parse(localStorage.getItem('np_guides')) || []; // [{name: "Name", phone: "9911"}]
-    let bookings = JSON.parse(localStorage.getItem('np_restaurant_v1')) || [];
+    let guides = JSON.parse(localStorage.getItem('np_guides')) || []; 
+    let bookings = JSON.parse(localStorage.getItem('np_restaurant_v3')) || []; // v3 for sync updates
+    
+    // NEW: Global Pax Data (Synced from Home Page)
+    let globalData = JSON.parse(localStorage.getItem('np_global_data')) || {}; 
+    
+    // NEW: Menu Memory
+    let menuList = JSON.parse(localStorage.getItem('np_menu_list')) || [];
+    let menuPrices = JSON.parse(localStorage.getItem('np_menu_prices')) || {}; 
 
     window.onload = function() {
         renderDropdowns();
         renderTable();
+        renderMenuOptions(); 
+        autoFillPax(); // Try filling if trip is already selected
     };
 
     function handleEnter(e, type) { if(e.key === 'Enter') { addNewOption(type); } }
 
-    function formatDate(input) {
-        let v = input.value.replace(/[^0-9]/g, '');
-        if (v.length > 4) v = v.slice(0, 4) + '.' + v.slice(4);
-        if (v.length > 7) v = v.slice(0, 7) + '.' + v.slice(7);
-        input.value = v;
+    // --- AUTO-FILL PAX FROM HOME PAGE ---
+    function autoFillPax() {
+        const tripName = document.getElementById('tripSelect').value;
+        if(tripName && globalData[tripName]) {
+            // Fill Total Pax into "Жуулчин Тоо"
+            document.getElementById('paxForeign').value = globalData[tripName].totalPax || '';
+            
+            // Also try to fill Guide Name if it matches
+            const savedGuide = globalData[tripName].guide;
+            if(savedGuide) {
+                // Check if guide exists in our list, if not, add temp option
+                let guideExists = false;
+                const guideSel = document.getElementById('guideSelect');
+                for (let i = 0; i < guideSel.options.length; i++) {
+                    if (guideSel.options[i].value === savedGuide) {
+                        guideExists = true;
+                        break;
+                    }
+                }
+                if (!guideExists) {
+                    // Add it so it can be selected
+                    let opt = new Option(savedGuide, savedGuide);
+                    guideSel.add(opt);
+                }
+                guideSel.value = savedGuide;
+                fillGuidePhone(); // trigger phone fill
+            }
+            calcTotal();
+        }
     }
+    // ------------------------------------
+
+    // --- MENU LOGIC ---
+    function renderMenuOptions() {
+        const dl = document.getElementById('menuList');
+        dl.innerHTML = '';
+        menuList.forEach(m => {
+            let opt = document.createElement('option');
+            opt.value = m;
+            dl.appendChild(opt);
+        });
+    }
+
+    function suggestMenuPrice() {
+        const menuName = document.getElementById('menuName').value;
+        if(menuName && menuPrices[menuName]) {
+            document.getElementById('menuPrice').value = menuPrices[menuName];
+            calcTotal();
+        }
+    }
+
+    function saveMenuData(name, price) {
+        if(name && price > 0) {
+            menuPrices[name] = price;
+            localStorage.setItem('np_menu_prices', JSON.stringify(menuPrices));
+            
+            if(!menuList.includes(name)) {
+                menuList.push(name);
+                localStorage.setItem('np_menu_list', JSON.stringify(menuList));
+                renderMenuOptions();
+            }
+        }
+    }
+    // ------------------
 
     // --- Guide Logic ---
     function addNewGuide() {
@@ -195,7 +259,7 @@
             localStorage.setItem('np_guides', JSON.stringify(guides));
             document.getElementById('newGuideName').value = '';
             document.getElementById('newGuidePhone').value = '';
-            renderDropdowns(); // Refresh guide select
+            renderDropdowns(); 
         }
     }
 
@@ -262,6 +326,12 @@
 
     function saveBooking() {
         const editId = document.getElementById('editId').value;
+        const menuName = document.getElementById('menuName').value;
+        const menuPrice = parseFloat(document.getElementById('menuPrice').value) || 0;
+
+        // SAVE MENU PRICE MEMORY
+        saveMenuData(menuName, menuPrice);
+
         const data = {
             id: editId ? parseInt(editId) : Date.now(),
             trip: document.getElementById('tripSelect').value,
@@ -271,8 +341,8 @@
             
             paxForeign: document.getElementById('paxForeign').value,
             paxMongol: document.getElementById('paxMongol').value,
-            menuName: document.getElementById('menuName').value,
-            menuPrice: document.getElementById('menuPrice').value,
+            menuName: menuName,
+            menuPrice: menuPrice,
             
             guideName: document.getElementById('guideSelect').value,
             guidePhone: document.getElementById('guidePhone').value,
@@ -290,7 +360,7 @@
             bookings.push(data);
         }
 
-        localStorage.setItem('np_restaurant_v1', JSON.stringify(bookings));
+        localStorage.setItem('np_restaurant_v3', JSON.stringify(bookings));
         cancelEdit();
         renderTable();
     }
@@ -322,7 +392,6 @@
         document.getElementById('saveBtn').className = "btn-update";
         document.getElementById('cancelBtn').style.display = "inline-block";
         document.getElementById('bookingFormCard').classList.add('edit-mode');
-        document.getElementById('formTitle').innerText = "3. Ресторан Захиалга (Засах)";
         document.getElementById('bookingFormCard').scrollIntoView({ behavior: 'smooth' });
     }
 
@@ -330,9 +399,6 @@
         const inputs = document.querySelectorAll('#bookingFormCard input');
         inputs.forEach(i => i.value = '');
         document.getElementById('grandTotal').innerText = '0';
-        document.getElementById('discount').value = 0;
-        document.getElementById('paxForeign').value = 0;
-        document.getElementById('paxMongol').value = 0;
         document.getElementById('guideSelect').value = "";
         
         document.getElementById('editId').value = "";
@@ -341,6 +407,9 @@
         document.getElementById('cancelBtn').style.display = "none";
         document.getElementById('bookingFormCard').classList.remove('edit-mode');
         document.getElementById('formTitle').innerText = "3. Ресторан Захиалга";
+        
+        // Reset pax if trip selected
+        autoFillPax();
     }
 
     function renderTable() {
@@ -354,10 +423,8 @@
 
         bookings.forEach((b) => {
             if (filterRest !== "ALL" && b.restaurant !== filterRest) return;
-            
             if (filterMonth) {
-                let dateDash = b.date.replace(/\./g, '-');
-                if (!dateDash.startsWith(filterMonth)) return;
+                if (!b.date.startsWith(filterMonth)) return;
             }
 
             let row = tbody.insertRow();
@@ -375,14 +442,14 @@
                 <td>${b.paxForeign}</td>
                 <td>${b.paxMongol}</td>
                 
-                <td class="info-cell">${b.menuName}<br><span style="font-size:10px; color:#555;">Guide: ${b.guideName} (${b.guidePhone})</span></td>
+                <td class="info-cell">${b.menuName}<br><span style="font-size:10px; color:#555;">Guide: ${b.guideName}</span></td>
                 
                 <td class="col-money">${parseInt(b.menuPrice).toLocaleString()}</td>
                 <td style="color:red">-${b.discount}</td>
                 
                 <td class="col-total">${b.grandTotal}</td>
                 
-                <td class="date-cell">Н: ${b.invDate}<br>Т: ${b.paidDate}</td>
+                <td class="date-cell">Н: ${b.invDate || '-'}<br>Т: ${b.paidDate || '-'}</td>
             `;
         });
     }
@@ -392,7 +459,7 @@
             const index = bookings.findIndex(b => b.id == id);
             if (index > -1) {
                 bookings.splice(index, 1);
-                localStorage.setItem('np_restaurant_v1', JSON.stringify(bookings));
+                localStorage.setItem('np_restaurant_v3', JSON.stringify(bookings));
                 renderTable();
             }
         }
