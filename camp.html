@@ -3,108 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Camp Manager (Silent & Food Fixed)</title>
+    <title>Camp Manager (Room Type Logic)</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; padding: 20px; color: #333; }
         .container { max-width: 100%; margin: 0 auto; }
+        
         .nav-bar { display: flex; gap: 10px; margin-bottom: 20px; }
         .nav-btn { padding: 10px 20px; text-decoration: none; color: white; background-color: #7f8c8d; border-radius: 4px; font-weight: bold; }
-        .nav-btn.active { background-color: #e67e22; }
-        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; border-top: 4px solid #e67e22; }
-        h3 { margin-top: 0; color: #d35400; border-bottom: 1px solid #ddd; padding-bottom: 10px; margin-bottom: 15px; }
-        .big-title { font-size: 24px; font-weight: 800; color: #d35400; text-transform: uppercase; border-bottom: 3px solid #e67e22; padding-bottom: 10px; margin-bottom: 15px; margin-top: 0; }
+        .nav-btn.active { background-color: #27ae60; }
+
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; border-top: 4px solid #27ae60; }
+        h3 { margin-top: 0; color: #2c3e50; border-bottom: 1px solid #ddd; padding-bottom: 10px; margin-bottom: 15px; }
+        .big-title { font-size: 24px; font-weight: 800; color: #2c3e50; text-transform: uppercase; border-bottom: 3px solid #27ae60; padding-bottom: 10px; margin-bottom: 15px; margin-top: 0; }
         h4 { margin: 10px 0 5px 0; color: #555; font-size: 14px; text-transform: uppercase; border-bottom: 1px dashed #ccc; padding-bottom: 5px;}
-        .row { display: flex; gap: 15px; margin-bottom: 10px; flex-wrap: wrap; }
-        .col { flex: 1; min-width: 100px; }
-        label { font-weight: bold; font-size: 12px; display: block; margin-bottom: 5px; color: #555; }
-        input, select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; width: 100%; box-sizing: border-box; }
-        input:focus, select:focus { border-color: #e67e22; outline: none; }
-        .edit-mode { border: 2px solid #2980b9; background-color: #eaf2f8; }
-        .total-box { background: #fdf2e9; padding: 10px; border: 1px solid #f5cba7; margin-top: 10px; text-align: right; font-size: 18px; font-weight: bold; color: #d35400; }
+
+        .row { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+        .col { flex: 1; min-width: 90px; }
+        label { font-weight: bold; font-size: 11px; display: block; margin-bottom: 5px; color: #555; }
+        input, select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; width: 100%; box-sizing: border-box; }
+        input:focus, select:focus { border-color: #27ae60; outline: none; }
+        
+        .rate-box { background-color: #eafaf1; border: 1px solid #d5f5e3; padding: 15px; border-radius: 5px; }
+        .total-box { background: #eafaf1; padding: 10px; border: 1px solid #abebc6; margin-top: 10px; text-align: right; font-size: 18px; font-weight: bold; color: #27ae60; }
+
         button { cursor: pointer; border: none; padding: 10px 20px; border-radius: 4px; font-weight: bold; }
-        .btn-add { background-color: #27ae60; color: white; width: 100%; margin-top: 23px; } 
-        .btn-save { background-color: #d35400; color: white; width: 100%; font-size: 16px; padding: 12px; margin-top: 10px;}
-        .btn-update { background-color: #2980b9; color: white; width: 100%; font-size: 16px; padding: 12px; margin-top: 10px;} 
+        .btn-add { background-color: #27ae60; color: white; width: 100%; margin-top: 21px; } 
+        .btn-save { background-color: #27ae60; color: white; width: 100%; font-size: 16px; padding: 12px; margin-top: 10px;}
+        .btn-update { background-color: #f39c12; color: white; width: 100%; font-size: 16px; padding: 12px; margin-top: 10px;} 
         .btn-edit { background-color: #f39c12; color: white; padding: 4px 8px; font-size: 11px; border-radius: 4px; margin-right: 5px; }
         .btn-delete { background-color: #c0392b; color: white; padding: 4px 8px; font-size: 11px; border-radius: 4px; }
-        table { width: 100%; border-collapse: collapse; background: white; font-size: 13px; table-layout: auto; }
-        th, td { border: 1px solid #ddd; padding: 8px 5px; text-align: center; vertical-align: middle; }
-        th { background-color: #e67e22; color: white; font-weight: 600; font-size: 11px; }
+        .edit-mode { border: 2px solid #f39c12; background-color: #fffdf6; }
+
+        table { width: 100%; border-collapse: collapse; background: white; font-size: 12px; table-layout: auto; }
+        th, td { border: 1px solid #ddd; padding: 6px 4px; text-align: center; vertical-align: middle; }
+        th { background-color: #2c3e50; color: white; font-weight: 600; font-size: 11px; }
         tr:nth-child(even) { background-color: #f9f9f9; }
-        tr:hover { background-color: #fff3e0; }
+        tr:hover { background-color: #eafaf1; }
         .col-money { font-weight: bold; color: #2c3e50; background-color: #f4f6f7; }
-        .col-total { font-weight: bold; color: #d35400; background-color: #fae5d3; font-size: 14px; }
+        .col-total { font-weight: bold; color: #27ae60; background-color: #d5f5e3; font-size: 14px; }
         .info-cell { text-align: left; font-size: 12px; line-height: 1.4; }
         .date-cell { font-size: 11px; color: #666; line-height: 1.3; }
-        .room-tag { background: #e8f6f3; color: #16a085; padding: 2px 4px; border-radius: 3px; font-weight: bold; font-size: 11px; display:inline-block; margin-top:2px; }
     </style>
 </head>
 <body>
+
 <div class="container">
     <div class="nav-bar">
         <a href="index.html" class="nav-btn">1. HOTEL</a>
-        <a href="camp.html" class="nav-btn active">2. CAMP</a>
+        <a href="camp.html" class="nav-btn active">2. CAMP (Бааз)</a>
         <a href="restaurant.html" class="nav-btn">3. RESTAURANT</a>
         <a href="guesthouse.html" class="nav-btn">4. GUEST HOUSE</a>
         <a href="attraction.html" class="nav-btn">5. ҮЗВЭР</a>
         <a href="transport.html" class="nav-btn">6. ТЭЭВЭР</a>
         <a href="nomad.html" class="nav-btn">7. МАЛЧИН</a>
+        <a href="summary.html" class="nav-btn">8. НЭГДСЭН ДҮН</a>
     </div>
 
-    <div class="card" style="background-color: #fff8e1; border-top-color: #f1c40f;">
+    <div class="card" style="background-color: #eafaf1; border-top-color: #27ae60;">
         <h4>Settings</h4>
         <div class="row">
             <div class="col"><label>Шинэ Аялал</label><input type="text" id="newTripInput" onkeypress="handleEnter(event, 'trip')"></div>
             <div class="col" style="flex: 0.3;"><button class="btn-add" onclick="addNewOption('trip')">Нэмэх</button></div>
+            
             <div class="col"><label>Шинэ Бааз</label><input type="text" id="newCampInput" onkeypress="handleEnter(event, 'camp')"></div>
             <div class="col" style="flex: 0.3;"><button class="btn-add" onclick="addNewOption('camp')">Нэмэх</button></div>
+            
+            <div class="col"><label>Шинэ Төрөл</label><input type="text" id="newTypeInput" placeholder="Standard, Luxe..." onkeypress="handleEnter(event, 'type')"></div>
+            <div class="col" style="flex: 0.3;"><button class="btn-add" onclick="addNewOption('type')">Нэмэх</button></div>
         </div>
     </div>
 
     <div class="card" id="bookingFormCard">
         <h3 id="formTitle">2. Бааз Захиалга</h3>
         <input type="hidden" id="editId" value="">
+        
         <div class="row">
             <div class="col"><label>Аяллын нэр</label><select id="tripSelect"></select></div>
-            <div class="col"><label>Баазын нэр</label><select id="campSelect"></select></div>
-            <div class="col"><label>Ирэх (Y.M.D)</label><input type="text" id="checkIn" placeholder="2026.07.01" oninput="formatDate(this); calcTotal()"></div>
-            <div class="col"><label>Буцах (Y.M.D)</label><input type="text" id="checkOut" placeholder="2026.07.03" oninput="formatDate(this); calcTotal()"></div>
-            <div class="col" style="flex:0.5"><label>Хоног</label><input type="text" id="nights" readonly value="0" style="background:#eee;"></div>
+            <div class="col"><label>Баазын нэр</label><select id="campSelect" onchange="suggestCampPrices()"></select></div>
+            <div class="col"><label>Байрны Төрөл</label><select id="roomTypeSelect" onchange="suggestCampPrices()"></select></div>
+            
+            <div class="col"><label>Орох (Check In)</label><input type="date" id="checkIn" onchange="updateCheckOut()"></div>
+            <div class="col" style="flex:0.5"><label>Хоног</label><input type="number" id="nights" value="1" oninput="updateCheckOut()"></div>
+            <div class="col"><label>Гарах (Check Out)</label><input type="date" id="checkOut" onchange="updateNights()"></div>
         </div>
-        <div class="row">
-            <div class="col"><label>Байрны төрөл</label><select id="accomType"><option>Ger</option><option>Deluxe Ger</option><option>House</option></select></div>
-            <div class="col"><label>Зохион байгуулалт (Config)</label><select id="roomConfig"><option>Twin</option><option>Double</option><option>Triple</option><option>Family</option><option>Single</option></select></div>
-        </div>
+
         <hr style="border:0; border-top:1px dashed #ddd; margin:10px 0;">
-        <h4>Хүмүүс & Үнэ</h4>
-        <div class="row">
-            <div class="col"><label>Гадаад (Том) Тоо</label><input type="number" id="forAdlQty" oninput="calcTotal()"></div>
-            <div class="col"><label>Гадаад (Том) Үнэ</label><input type="number" id="forAdlPrice" oninput="calcTotal()"></div>
-            <div class="col"><label>Гадаад (Хүү) Тоо</label><input type="number" id="forChdQty" oninput="calcTotal()"></div>
-            <div class="col"><label>Гадаад (Хүү) Үнэ</label><input type="number" id="forChdPrice" oninput="calcTotal()"></div>
-            <div class="col" style="border-left:2px solid #eee; padding-left:10px;"><label>Монгол (Том) Тоо</label><input type="number" id="monAdlQty" oninput="calcTotal()"></div>
-            <div class="col"><label>Монгол (Том) Үнэ</label><input type="number" id="monAdlPrice" oninput="calcTotal()"></div>
+
+        <h4>Тариф (Сонгосон төрлөөс хамаарч үнэ өөрчлөгдөнө)</h4>
+        <div class="rate-box">
+            <div class="row">
+                <div class="col"><label>Гадаад (Том) Тоо</label><input type="number" id="faQty" value="0" oninput="calcTotal()"></div>
+                <div class="col"><label>Гадаад (Том) Үнэ</label><input type="number" id="faPrice" placeholder="Auto-Fill" oninput="calcTotal()"></div>
+                
+                <div class="col"><label>Гадаад (Хүү) Тоо</label><input type="number" id="fcQty" value="0" oninput="calcTotal()"></div>
+                <div class="col"><label>Гадаад (Хүү) Үнэ</label><input type="number" id="fcPrice" placeholder="Auto-Fill" oninput="calcTotal()"></div>
+            </div>
+            
+            <div class="row">
+                <div class="col"><label>Жолооч/Хөтөч Тоо</label><input type="number" id="staffQty" value="2" oninput="calcTotal()"></div>
+                <div class="col"><label>Жолооч/Хөтөч Үнэ</label><input type="number" id="staffPrice" placeholder="Auto-Fill" oninput="calcTotal()"></div>
+                <div class="col" style="flex:2"></div>
+            </div>
         </div>
+
         <hr style="border:0; border-top:1px dashed #ddd; margin:10px 0;">
-        <h4>Хоол (Тоо x Үнэ x Бүх Хүмүүс)</h4>
+
+        <h4>Нэмэлт Хоол (Үнэ x Бүх Хүмүүс)</h4>
         <div class="row">
-            <div class="col"><label>Өглөө Тоо</label><input type="number" id="bfQty" oninput="calcTotal()"></div>
-            <div class="col"><label>Өглөө Үнэ</label><input type="number" id="bfPrice" oninput="calcTotal()"></div>
-            <div class="col"><label>Өдөр Тоо</label><input type="number" id="lnQty" oninput="calcTotal()"></div>
-            <div class="col"><label>Өдөр Үнэ</label><input type="number" id="lnPrice" oninput="calcTotal()"></div>
-            <div class="col"><label>Орой Тоо</label><input type="number" id="dnQty" oninput="calcTotal()"></div>
-            <div class="col"><label>Орой Үнэ</label><input type="number" id="dnPrice" oninput="calcTotal()"></div>
+            <div class="col"><label>Өглөө (Үнэ)</label><input type="number" id="bfPrice" oninput="calcTotal()"></div>
+            <div class="col"><label>Өдөр (Үнэ)</label><input type="number" id="lnPrice" oninput="calcTotal()"></div>
+            <div class="col"><label>Орой (Үнэ)</label><input type="number" id="dnPrice" oninput="calcTotal()"></div>
         </div>
+
         <hr style="border:0; border-top:1px dashed #ddd; margin:10px 0;">
+
         <h4>Бусад & Огноо</h4>
         <div class="row">
-            <div class="col"><label>Нэмэлт нэр</label><input type="text" id="extraName"></div>
-            <div class="col"><label>Нэмэлт Үнэ</label><input type="number" id="extraPrice" value="0" oninput="calcTotal()"></div>
-            <div class="col"><label style="color:red;">Хөнгөлөлт</label><input type="number" id="discount" value="0" style="color:red;" oninput="calcTotal()"></div>
-            <div class="col"><label>Нэхэмжилсэн</label><input type="text" id="invDate" placeholder="2026.07.05" oninput="formatDate(this)"></div>
-            <div class="col"><label>Төлсөн</label><input type="text" id="paidDate" placeholder="2026.07.10" oninput="formatDate(this)"></div>
+            <div class="col"><label>Бусад/Extra</label><input type="text" id="extraName"></div>
+            <div class="col"><label>Дүн</label><input type="number" id="extraPrice" value="0" oninput="calcTotal()"></div>
+            <div class="col"><label style="color:red">Хөнгөлөлт</label><input type="number" id="discount" value="0" oninput="calcTotal()"></div>
+            
+            <div class="col"><label>Нэхэмжилсэн</label><input type="date" id="invDate"></div>
+            <div class="col"><label>Төлсөн</label><input type="date" id="paidDate"></div>
         </div>
+
         <div class="total-box">НИЙТ: <span id="grandTotal">0</span> ₮</div>
+        
         <button id="saveBtn" class="btn-save" onclick="saveBooking()">ХАДГАЛАХ</button>
         <button id="cancelBtn" class="btn-delete" style="display:none; margin-top:10px; padding:12px;" onclick="cancelEdit()">ЦУЦЛАХ</button>
     </div>
@@ -113,27 +137,20 @@
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
             <h3 class="big-title">3. ЖАГСААЛТ (SHEET)</h3>
             <div style="display:flex; gap:10px;">
-                <div style="width: 150px;"><input type="month" id="filterMonth" onchange="renderTable()" style="padding:6px;"></div>
-                <div style="width: 200px;"><select id="filterCamp" onchange="renderTable()"><option value="ALL">Бүх Бааз</option></select></div>
+                <div style="width: 150px;"><label>Сараар шүүх:</label><input type="month" id="filterMonth" onchange="renderTable()" style="padding:6px;"></div>
+                <div style="width: 200px;"><label>Баазаар шүүх:</label><select id="filterCamp" onchange="renderTable()"><option value="ALL">Бүх Бааз</option></select></div>
             </div>
         </div>
         <table>
             <thead>
                 <tr>
-                    <th rowspan="2">Үйлдэл</th>
-                    <th rowspan="2" style="width:15%">Аялал / Бааз</th>
-                    <th rowspan="2">Байр / ЗБ</th>
-                    <th rowspan="2" style="width:8%">Огноо</th>
-                    <th colspan="2">Гадаад (Том)</th>
-                    <th colspan="2">Гадаад (Хүү)</th>
-                    <th colspan="2">Монгол (Том)</th>
-                    <th colspan="2">Хоол</th>
-                    <th rowspan="2">Бусад</th>
-                    <th rowspan="2">Нийт</th>
-                    <th rowspan="2" style="width:8%">Төлбөр</th>
-                </tr>
-                <tr>
-                    <th>#</th> <th>$</th> <th>#</th> <th>$</th> <th>#</th> <th>$</th> <th>Тоо</th> <th>Үнэ</th>
+                    <th>Үйлдэл</th> 
+                    <th style="width:18%">Аялал / Бааз</th> 
+                    <th>Төрөл</th>
+                    <th>Огноо</th>
+                    <th>Pax Total</th> 
+                    <th>Нийт</th> 
+                    <th>Огноо (Н/Т)</th>
                 </tr>
             </thead>
             <tbody id="tableBody"></tbody>
@@ -144,52 +161,99 @@
 <script>
     let trips = JSON.parse(localStorage.getItem('np_trips')) || [];
     let camps = JSON.parse(localStorage.getItem('np_camps')) || [];
-    let bookings = JSON.parse(localStorage.getItem('np_camp_compact_v2')) || [];
+    let types = JSON.parse(localStorage.getItem('np_camp_types')) || ['Standard Ger', 'Luxe Ger', 'Wooden House'];
+    let bookings = JSON.parse(localStorage.getItem('np_camp_pro_v3')) || []; // Version 3
+    
+    // Structure: campPrices[campName][roomType] = { fa: 100, fc: 50, st: 20 }
+    let campPrices = JSON.parse(localStorage.getItem('np_camp_prices_memory_v3')) || {};
 
-    window.onload = function() { renderDropdowns(); renderTable(); };
+    window.onload = function() {
+        renderDropdowns(); renderTable(); suggestCampPrices();
+    };
+
+    // --- DATE LOGIC ---
+    function updateCheckOut() {
+        let checkInVal = document.getElementById('checkIn').value;
+        let nightsVal = parseInt(document.getElementById('nights').value) || 0;
+        if (checkInVal && nightsVal >= 0) {
+            let date = new Date(checkInVal);
+            date.setDate(date.getDate() + nightsVal);
+            let y = date.getFullYear();
+            let m = ('0' + (date.getMonth() + 1)).slice(-2);
+            let d = ('0' + date.getDate()).slice(-2);
+            document.getElementById('checkOut').value = `${y}-${m}-${d}`;
+        }
+        calcTotal();
+    }
+
+    function updateNights() {
+        let d1Str = document.getElementById('checkIn').value;
+        let d2Str = document.getElementById('checkOut').value;
+        if (d1Str && d2Str) {
+            let d1 = new Date(d1Str); let d2 = new Date(d2Str);
+            let diffDays = Math.ceil((d2 - d1) / (1000 * 60 * 60 * 24)); 
+            document.getElementById('nights').value = diffDays > 0 ? diffDays : 0;
+        }
+        calcTotal();
+    }
+
+    // --- PRICE MEMORY LOGIC (Camp + Type Specific) ---
+    function suggestCampPrices() {
+        const camp = document.getElementById('campSelect').value;
+        const type = document.getElementById('roomTypeSelect').value;
+        
+        if (camp && type && campPrices[camp] && campPrices[camp][type]) {
+            const p = campPrices[camp][type];
+            document.getElementById('faPrice').value = p.fa || '';
+            document.getElementById('fcPrice').value = p.fc || '';
+            document.getElementById('staffPrice').value = p.st || '';
+        } else {
+            document.getElementById('faPrice').value = '';
+            document.getElementById('fcPrice').value = '';
+            document.getElementById('staffPrice').value = '';
+        }
+        calcTotal();
+    }
+
+    function saveCurrentCampPrices(camp, type) {
+        if (!camp || !type) return;
+        
+        if (!campPrices[camp]) campPrices[camp] = {};
+        
+        campPrices[camp][type] = {
+            fa: document.getElementById('faPrice').value,
+            fc: document.getElementById('fcPrice').value,
+            st: document.getElementById('staffPrice').value
+        };
+        localStorage.setItem('np_camp_prices_memory_v3', JSON.stringify(campPrices));
+    }
 
     function handleEnter(e, type) { if(e.key === 'Enter') { addNewOption(type); } }
 
-    function formatDate(input) {
-        let v = input.value.replace(/[^0-9]/g, '');
-        if (v.length > 4) v = v.slice(0, 4) + '.' + v.slice(4);
-        if (v.length > 7) v = v.slice(0, 7) + '.' + v.slice(7);
-        input.value = v;
-    }
-
     function calcTotal() {
-        let d1Str = document.getElementById('checkIn').value;
-        let d2Str = document.getElementById('checkOut').value;
-        let nights = 0;
-        if (d1Str.length === 10 && d2Str.length === 10) {
-            const d1 = new Date(d1Str.replace(/\./g, '-'));
-            const d2 = new Date(d2Str.replace(/\./g, '-'));
-            if (d2 > d1) { nights = Math.ceil(Math.abs(d2 - d1) / (1000 * 60 * 60 * 24)); }
-        }
-        document.getElementById('nights').value = nights;
+        let nights = parseFloat(document.getElementById('nights').value) || 0;
 
-        const forAdlQty = parseFloat(document.getElementById('forAdlQty').value) || 0;
-        const forAdlPrice = parseFloat(document.getElementById('forAdlPrice').value) || 0;
-        const forChdQty = parseFloat(document.getElementById('forChdQty').value) || 0;
-        const forChdPrice = parseFloat(document.getElementById('forChdPrice').value) || 0;
-        const monAdlQty = parseFloat(document.getElementById('monAdlQty').value) || 0;
-        const monAdlPrice = parseFloat(document.getElementById('monAdlPrice').value) || 0;
+        let faQ = parseFloat(document.getElementById('faQty').value) || 0;
+        let fcQ = parseFloat(document.getElementById('fcQty').value) || 0;
+        let stQ = parseFloat(document.getElementById('staffQty').value) || 0;
+
+        let faP = parseFloat(document.getElementById('faPrice').value) || 0;
+        let fcP = parseFloat(document.getElementById('fcPrice').value) || 0;
+        let stP = parseFloat(document.getElementById('staffPrice').value) || 0;
+
+        let accomTotal = ((faQ * faP) + (fcQ * fcP) + (stQ * stP)) * nights;
+
+        let totalPax = faQ + fcQ + stQ;
+        let bf = parseFloat(document.getElementById('bfPrice').value) || 0;
+        let ln = parseFloat(document.getElementById('lnPrice').value) || 0;
+        let dn = parseFloat(document.getElementById('dnPrice').value) || 0;
         
-        const accomPerNight = (forAdlQty * forAdlPrice) + (forChdQty * forChdPrice) + (monAdlQty * monAdlPrice);
-        const totalAccom = accomPerNight * nights;
+        let foodTotal = (bf + ln + dn) * totalPax;
 
-        // TOTAL PEOPLE FOR FOOD
-        const totalPeople = forAdlQty + forChdQty + monAdlQty;
+        let extra = parseFloat(document.getElementById('extraPrice').value) || 0;
+        let disc = parseFloat(document.getElementById('discount').value) || 0;
 
-        // FOOD CALCULATION (Qty * Price * Total People)
-        const bfTotal = (parseFloat(document.getElementById('bfQty').value)||0) * (parseFloat(document.getElementById('bfPrice').value)||0) * totalPeople;
-        const lnTotal = (parseFloat(document.getElementById('lnQty').value)||0) * (parseFloat(document.getElementById('lnPrice').value)||0) * totalPeople;
-        const dnTotal = (parseFloat(document.getElementById('dnQty').value)||0) * (parseFloat(document.getElementById('dnPrice').value)||0) * totalPeople;
-        
-        const grandFood = bfTotal + lnTotal + dnTotal; 
-        const extra = parseFloat(document.getElementById('extraPrice').value) || 0;
-        const discount = parseFloat(document.getElementById('discount').value) || 0;
-        const grand = totalAccom + grandFood + extra - discount;
+        let grand = accomTotal + foodTotal + extra - disc;
         document.getElementById('grandTotal').innerText = grand.toLocaleString();
     }
 
@@ -200,39 +264,63 @@
         } else if (type === 'camp') {
             const val = document.getElementById('newCampInput').value;
             if (val) { camps.push(val); localStorage.setItem('np_camps', JSON.stringify(camps)); document.getElementById('newCampInput').value = ''; renderDropdowns(); }
+        } else if (type === 'type') {
+            const val = document.getElementById('newTypeInput').value;
+            if (val) { types.push(val); localStorage.setItem('np_camp_types', JSON.stringify(types)); document.getElementById('newTypeInput').value = ''; renderDropdowns(); }
         }
     }
 
     function renderDropdowns() {
-        const tripSel = document.getElementById('tripSelect'); const campSel = document.getElementById('campSelect'); const filterSel = document.getElementById('filterCamp');
-        const currTrip = tripSel.value; const currCamp = campSel.value; const currFilter = filterSel.value;
-        tripSel.innerHTML = ''; campSel.innerHTML = ''; filterSel.innerHTML = '<option value="ALL">Бүх Бааз</option>';
-        trips.forEach(t => { let opt = document.createElement('option'); opt.value = t; opt.innerHTML = t; tripSel.appendChild(opt); });
-        camps.forEach(h => { 
-            let opt = document.createElement('option'); opt.value = h; opt.innerHTML = h; campSel.appendChild(opt);
-            let filterOpt = document.createElement('option'); filterOpt.value = h; filterOpt.innerHTML = h; filterSel.appendChild(filterOpt);
-        });
-        if(currTrip) tripSel.value = currTrip; if(currCamp) campSel.value = currCamp; if(currFilter) filterSel.value = currFilter;
+        const tripSel = document.getElementById('tripSelect'); 
+        const campSel = document.getElementById('campSelect'); 
+        const typeSel = document.getElementById('roomTypeSelect');
+        const filterSel = document.getElementById('filterCamp');
+        
+        const currTrip = tripSel.value; const currCamp = campSel.value; 
+        const currType = typeSel.value; const currFilter = filterSel.value;
+
+        tripSel.innerHTML = ''; campSel.innerHTML = ''; typeSel.innerHTML = '';
+        filterSel.innerHTML = '<option value="ALL">Бүх Бааз</option>';
+        
+        trips.forEach(t => { tripSel.add(new Option(t, t)); });
+        camps.forEach(c => { campSel.add(new Option(c, c)); filterSel.add(new Option(c, c)); });
+        types.forEach(t => { typeSel.add(new Option(t, t)); });
+
+        if(currTrip) tripSel.value = currTrip;
+        if(currCamp) { campSel.value = currCamp; }
+        if(currType) typeSel.value = currType;
+        if(currFilter) filterSel.value = currFilter;
+        
+        // Trigger suggest after render if camp selected
+        suggestCampPrices();
     }
 
     function saveBooking() {
         const editId = document.getElementById('editId').value;
+        const campName = document.getElementById('campSelect').value;
+        const typeName = document.getElementById('roomTypeSelect').value;
+        
+        // Save Prices Logic
+        saveCurrentCampPrices(campName, typeName);
+
         const data = {
             id: editId ? parseInt(editId) : Date.now(),
             trip: document.getElementById('tripSelect').value,
-            camp: document.getElementById('campSelect').value,
+            camp: campName,
+            roomType: typeName,
             checkIn: document.getElementById('checkIn').value,
             checkOut: document.getElementById('checkOut').value,
             nights: document.getElementById('nights').value,
-            forAdlQty: document.getElementById('forAdlQty').value, forAdlPrice: document.getElementById('forAdlPrice').value,
-            forChdQty: document.getElementById('forChdQty').value, forChdPrice: document.getElementById('forChdPrice').value,
-            monAdlQty: document.getElementById('monAdlQty').value, monAdlPrice: document.getElementById('monAdlPrice').value,
-            accomType: document.getElementById('accomType').value,
-            roomConfig: document.getElementById('roomConfig').value,
-            bfQty: document.getElementById('bfQty').value, bfPrice: document.getElementById('bfPrice').value,
-            lnQty: document.getElementById('lnQty').value, lnPrice: document.getElementById('lnPrice').value,
-            dnQty: document.getElementById('dnQty').value, dnPrice: document.getElementById('dnPrice').value,
-            extraName: document.getElementById('extraName').value,
+            
+            faQty: document.getElementById('faQty').value, faPrice: document.getElementById('faPrice').value,
+            fcQty: document.getElementById('fcQty').value, fcPrice: document.getElementById('fcPrice').value,
+            stQty: document.getElementById('staffQty').value, stPrice: document.getElementById('staffPrice').value,
+
+            bfPrice: document.getElementById('bfPrice').value,
+            lnPrice: document.getElementById('lnPrice').value,
+            dnPrice: document.getElementById('dnPrice').value,
+            
+            extraName: document.getElementById('extraName').value, 
             extraPrice: document.getElementById('extraPrice').value,
             discount: document.getElementById('discount').value,
             grandTotal: document.getElementById('grandTotal').innerText,
@@ -240,95 +328,98 @@
             paidDate: document.getElementById('paidDate').value
         };
 
-        if (editId) {
-            const index = bookings.findIndex(b => b.id == editId);
-            if (index !== -1) bookings[index] = data;
-        } else {
-            bookings.push(data);
-        }
-        localStorage.setItem('np_camp_compact_v2', JSON.stringify(bookings));
-        cancelEdit();
-        renderTable();
+        if (editId) { let idx = bookings.findIndex(b => b.id == editId); if (idx !== -1) bookings[idx] = data; } 
+        else { bookings.push(data); }
+        
+        localStorage.setItem('np_camp_pro_v3', JSON.stringify(bookings));
+        cancelEdit(); renderTable();
     }
 
     function editBooking(id) {
-        const b = bookings.find(item => item.id == id);
-        if (!b) return;
+        const b = bookings.find(item => item.id == id); if (!b) return;
         document.getElementById('editId').value = b.id;
-        document.getElementById('tripSelect').value = b.trip;
+        document.getElementById('tripSelect').value = b.trip; 
         document.getElementById('campSelect').value = b.camp;
-        document.getElementById('checkIn').value = b.checkIn;
+        
+        // Load Room Type (might need to add to list if deleted, but assuming standard list)
+        if (!types.includes(b.roomType)) {
+             let opt = new Option(b.roomType, b.roomType);
+             document.getElementById('roomTypeSelect').add(opt);
+        }
+        document.getElementById('roomTypeSelect').value = b.roomType;
+        
+        document.getElementById('checkIn').value = b.checkIn; 
         document.getElementById('checkOut').value = b.checkOut;
         document.getElementById('nights').value = b.nights;
-        document.getElementById('forAdlQty').value = b.forAdlQty; document.getElementById('forAdlPrice').value = b.forAdlPrice;
-        document.getElementById('forChdQty').value = b.forChdQty; document.getElementById('forChdPrice').value = b.forChdPrice;
-        document.getElementById('monAdlQty').value = b.monAdlQty; document.getElementById('monAdlPrice').value = b.monAdlPrice;
-        document.getElementById('accomType').value = b.accomType;
-        document.getElementById('roomConfig').value = b.roomConfig;
-        document.getElementById('bfQty').value = b.bfQty; document.getElementById('bfPrice').value = b.bfPrice;
-        document.getElementById('lnQty').value = b.lnQty; document.getElementById('lnPrice').value = b.lnPrice;
-        document.getElementById('dnQty').value = b.dnQty; document.getElementById('dnPrice').value = b.dnPrice;
-        document.getElementById('extraName').value = b.extraName;
+
+        document.getElementById('faQty').value = b.faQty; document.getElementById('faPrice').value = b.faPrice;
+        document.getElementById('fcQty').value = b.fcQty; document.getElementById('fcPrice').value = b.fcPrice;
+        document.getElementById('staffQty').value = b.stQty; document.getElementById('staffPrice').value = b.stPrice;
+
+        document.getElementById('bfPrice').value = b.bfPrice || "";
+        document.getElementById('lnPrice').value = b.lnPrice || "";
+        document.getElementById('dnPrice').value = b.dnPrice || "";
+
+        document.getElementById('extraName').value = b.extraName; 
         document.getElementById('extraPrice').value = b.extraPrice;
         document.getElementById('discount').value = b.discount;
         document.getElementById('grandTotal').innerText = b.grandTotal;
-        document.getElementById('invDate').value = b.invDate;
-        document.getElementById('paidDate').value = b.paidDate;
-        document.getElementById('saveBtn').innerText = "ШИНЭЧЛЭХ (UPDATE)";
-        document.getElementById('saveBtn').className = "btn-update";
+        document.getElementById('invDate').value = b.invDate || "";
+        document.getElementById('paidDate').value = b.paidDate || "";
+
+        document.getElementById('saveBtn').innerText = "ШИНЭЧЛЭХ"; document.getElementById('saveBtn').className = "btn-update";
         document.getElementById('cancelBtn').style.display = "inline-block";
         document.getElementById('bookingFormCard').classList.add('edit-mode');
-        document.getElementById('formTitle').innerText = "2. Бааз Захиалга (Засах горим)";
         document.getElementById('bookingFormCard').scrollIntoView({ behavior: 'smooth' });
     }
 
     function cancelEdit() {
-        const inputs = document.querySelectorAll('#bookingFormCard input');
-        inputs.forEach(i => i.value = '');
-        document.getElementById('nights').value = 0;
+        document.querySelectorAll('#bookingFormCard input').forEach(i => i.value = '');
+        document.getElementById('nights').value = 1; 
         document.getElementById('grandTotal').innerText = '0';
-        document.getElementById('extraPrice').value = 0;
-        document.getElementById('discount').value = 0;
+        document.getElementById('faQty').value = 0; document.getElementById('fcQty').value = 0;
+        document.getElementById('staffQty').value = 2; 
+        
+        suggestCampPrices(); 
+        
         document.getElementById('editId').value = "";
-        document.getElementById('saveBtn').innerText = "ХАДГАЛАХ";
-        document.getElementById('saveBtn').className = "btn-save";
+        document.getElementById('saveBtn').innerText = "ХАДГАЛАХ"; document.getElementById('saveBtn').className = "btn-save";
         document.getElementById('cancelBtn').style.display = "none";
         document.getElementById('bookingFormCard').classList.remove('edit-mode');
-        document.getElementById('formTitle').innerText = "2. Бааз Захиалга";
     }
 
     function renderTable() {
-        const tbody = document.getElementById('tableBody');
-        tbody.innerHTML = '';
+        const tbody = document.getElementById('tableBody'); tbody.innerHTML = '';
         const filterCamp = document.getElementById('filterCamp').value;
         const filterMonth = document.getElementById('filterMonth').value;
+        
         bookings.sort((a, b) => (a.checkIn > b.checkIn) ? 1 : -1);
 
         bookings.forEach((b) => {
             if (filterCamp !== "ALL" && b.camp !== filterCamp) return;
-            if (filterMonth) { let checkInDash = b.checkIn.replace(/\./g, '-'); if (!checkInDash.startsWith(filterMonth)) return; }
+            if (filterMonth && !b.checkIn.startsWith(filterMonth)) return;
+            
             let row = tbody.insertRow();
+            
+            let accomTotal = ((b.faQty*b.faPrice) + (b.fcQty*b.fcPrice) + (b.stQty*b.stPrice)) * b.nights;
+
             row.innerHTML = `
-                <td><button class="btn-edit" onclick="editBooking(${b.id})">Засах</button><button class="btn-delete" onclick="deleteBooking(${b.id})">X</button></td>
+                <td><button class="btn-edit" onclick="editBooking(${b.id})">Зас</button><button class="btn-delete" onclick="deleteBooking(${b.id})">X</button></td>
                 <td class="info-cell"><b>${b.trip}</b><br>${b.camp}</td>
-                <td class="info-cell" style="text-align:center">${b.accomType}<br><span class="room-tag">${b.roomConfig}</span></td>
-                <td class="info-cell">${b.checkIn}<br>${b.checkOut}<br><b>${b.nights} хон</b></td>
-                <td>${b.forAdlQty}</td> <td class="col-money">${parseInt(b.forAdlPrice).toLocaleString()}</td>
-                <td>${b.forChdQty}</td> <td class="col-money">${parseInt(b.forChdPrice).toLocaleString()}</td>
-                <td>${b.monAdlQty}</td> <td class="col-money">${parseInt(b.monAdlPrice).toLocaleString()}</td>
-                <td class="date-cell">BF:${b.bfQty} LN:${b.lnQty} DN:${b.dnQty}</td>
-                <td class="col-money">${((b.bfQty*b.bfPrice)+(b.lnQty*b.lnPrice)+(b.dnQty*b.dnPrice)).toLocaleString()}</td>
-                <td class="date-cell">${b.extraName}<br>${b.extraPrice}₮<br><span style="color:red">-${b.discount}</span></td>
+                <td class="info-cell">${b.roomType || '-'}</td>
+                <td class="info-cell">${b.checkIn}<br><b>${b.nights} хон</b></td>
+                
+                <td class="col-money" style="background:#e8f8f5">${accomTotal.toLocaleString()}</td>
+                
                 <td class="col-total">${b.grandTotal}</td>
-                <td class="date-cell">Н: ${b.invDate}<br>Т: ${b.paidDate}</td>
-            `;
+                <td class="date-cell">Н: ${b.invDate || '-'}<br>Т: ${b.paidDate || '-'}</td>`;
         });
     }
 
     function deleteBooking(id) {
         if(confirm("Устгах уу?")) {
             const index = bookings.findIndex(b => b.id == id);
-            if (index > -1) { bookings.splice(index, 1); localStorage.setItem('np_camp_compact_v2', JSON.stringify(bookings)); renderTable(); }
+            if (index > -1) { bookings.splice(index, 1); localStorage.setItem('np_camp_pro_v3', JSON.stringify(bookings)); renderTable(); }
         }
     }
 </script>
