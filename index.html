@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hotel Manager (Silent & Food Calc)</title>
+    <title>Hotel Manager (Simple Food Calc)</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; padding: 20px; color: #333; }
         .container { max-width: 100%; margin: 0 auto; }
+        
         .nav-bar { display: flex; gap: 10px; margin-bottom: 20px; }
         .nav-btn { padding: 10px 20px; text-decoration: none; color: white; background-color: #7f8c8d; border-radius: 4px; font-weight: bold; }
         .nav-btn.active { background-color: #2980b9; }
@@ -53,14 +54,14 @@
 
 <div class="container">
     <div class="nav-bar">
-        <a href="index.html" class="nav-btn active">1. HOTEL</a>
-        <a href="camp.html" class="nav-btn">2. CAMP</a>
+        <a href="index.html" class="nav-btn active">1. HOTEL (Буудал)</a>
+        <a href="camp.html" class="nav-btn">2. CAMP (Бааз)</a>
         <a href="restaurant.html" class="nav-btn">3. RESTAURANT</a>
         <a href="guesthouse.html" class="nav-btn">4. GUEST HOUSE</a>
         <a href="attraction.html" class="nav-btn">5. ҮЗВЭР</a>
         <a href="transport.html" class="nav-btn">6. ТЭЭВЭР</a>
         <a href="nomad.html" class="nav-btn">7. МАЛЧИН</a>
-        <a href="summary.html" class="nav-btn active">8. НЭГДСЭН ДҮН</a>
+        <a href="summary.html" class="nav-btn">8. НЭГДСЭН ДҮН</a>
     </div>
 
     <div class="card" style="background-color: #eaf2f8; border-top-color: #5499c7;">
@@ -76,20 +77,24 @@
     <div class="card" id="bookingFormCard">
         <h3 id="formTitle">2. Буудал Захиалга</h3>
         <input type="hidden" id="editId" value="">
+        
         <div class="row">
             <div class="col"><label>Аяллын нэр</label><select id="tripSelect"></select></div>
-            <div class="col"><label>Буудлын нэр</label><select id="hotelSelect"></select></div>
-            <div class="col"><label>Ирэх (Y.M.D)</label><input type="text" id="checkIn" placeholder="2026.05.20" oninput="formatDate(this); calcTotal()"></div>
-            <div class="col"><label>Буцах (Y.M.D)</label><input type="text" id="checkOut" placeholder="2026.05.22" oninput="formatDate(this); calcTotal()"></div>
-            <div class="col" style="flex:0.5"><label>Хоног</label><input type="text" id="nights" readonly value="0" style="background:#eee;"></div>
+            <div class="col"><label>Буудлын нэр</label><select id="hotelSelect" onchange="suggestRoomPrice()"></select></div>
+            
+            <div class="col"><label>Орох (Check In)</label><input type="date" id="checkIn" onchange="updateCheckOut()"></div>
+            <div class="col" style="flex:0.5"><label>Хоног (Nights)</label><input type="number" id="nights" value="1" oninput="updateCheckOut()"></div>
+            <div class="col"><label>Гарах (Check Out)</label><input type="date" id="checkOut" onchange="updateNights()"></div>
         </div>
+
         <hr style="border:0; border-top:1px dashed #ddd; margin:10px 0;">
+
         <h4>Өрөөний Сонголт</h4>
         <div class="room-adder-box">
             <div class="row">
                 <div class="col">
                     <label>Төрөл</label>
-                    <select id="tempRoomType">
+                    <select id="tempRoomType" onchange="suggestRoomPrice()">
                         <option value="Single">Single</option>
                         <option value="Twin">Twin</option>
                         <option value="Double">Double</option>
@@ -102,31 +107,36 @@
                 <div class="col"><label>Үнэ (1 ш)</label><input type="number" id="tempRoomPrice" placeholder="50000"></div>
                 <div class="col" style="flex:0.3"><button class="btn-plus" onclick="addRoomToList()">+ НЭМЭХ</button></div>
             </div>
+            
             <div id="addedRoomsList" style="margin-top:10px;"></div>
         </div>
+        
         <div class="row" style="margin-top:10px;">
             <div class="col"><label>Нийт Жуулчин (Тоо)</label><input type="number" id="paxCount" value="1" oninput="calcTotal()"></div>
         </div>
+
         <hr style="border:0; border-top:1px dashed #ddd; margin:10px 0;">
-        <h4>Ресторан (Тоо x Үнэ x Жуулчин)</h4>
+
+        <h4>Ресторан (Нэг хүний үнэ * Жуулчин)</h4>
         <div class="row">
-            <div class="col"><label>Өглөө (Тоо)</label><input type="number" id="bfQty" oninput="calcTotal()"></div>
-            <div class="col"><label>Өглөө (Үнэ)</label><input type="number" id="bfPrice" oninput="calcTotal()"></div>
-            <div class="col"><label>Өдөр (Тоо)</label><input type="number" id="lnQty" oninput="calcTotal()"></div>
-            <div class="col"><label>Өдөр (Үнэ)</label><input type="number" id="lnPrice" oninput="calcTotal()"></div>
-            <div class="col"><label>Орой (Тоо)</label><input type="number" id="dnQty" oninput="calcTotal()"></div>
-            <div class="col"><label>Орой (Үнэ)</label><input type="number" id="dnPrice" oninput="calcTotal()"></div>
+            <div class="col"><label>Өглөө (Үнэ)</label><input type="number" id="bfPrice" placeholder="Үнэ/1хүн" oninput="calcTotal()"></div>
+            <div class="col"><label>Өдөр (Үнэ)</label><input type="number" id="lnPrice" placeholder="Үнэ/1хүн" oninput="calcTotal()"></div>
+            <div class="col"><label>Орой (Үнэ)</label><input type="number" id="dnPrice" placeholder="Үнэ/1хүн" oninput="calcTotal()"></div>
         </div>
+
         <hr style="border:0; border-top:1px dashed #ddd; margin:10px 0;">
+
         <h4>Бусад & Огноо</h4>
         <div class="row">
             <div class="col"><label>Нэмэлт нэр</label><input type="text" id="extraName"></div>
             <div class="col"><label>Нэмэлт Үнэ</label><input type="number" id="extraPrice" value="0" oninput="calcTotal()"></div>
             <div class="col"><label style="color:red;">Хөнгөлөлт</label><input type="number" id="discount" value="0" style="color:red;" oninput="calcTotal()"></div>
-            <div class="col"><label>Нэхэмжилсэн</label><input type="text" id="invDate" placeholder="2026.05.25" oninput="formatDate(this)"></div>
-            <div class="col"><label>Төлсөн</label><input type="text" id="paidDate" placeholder="2026.05.30" oninput="formatDate(this)"></div>
+            <div class="col"><label>Нэхэмжилсэн</label><input type="date" id="invDate"></div>
+            <div class="col"><label>Төлсөн</label><input type="date" id="paidDate"></div>
         </div>
+
         <div class="total-box">НИЙТ: <span id="grandTotal">0</span> ₮</div>
+        
         <button id="saveBtn" class="btn-save" onclick="saveBooking()">ХАДГАЛАХ</button>
         <button id="cancelBtn" class="btn-delete" style="display:none; margin-top:10px; padding:12px;" onclick="cancelEdit()">ЦУЦЛАХ</button>
     </div>
@@ -135,28 +145,18 @@
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
             <h3 class="big-title">3. ЖАГСААЛТ (SHEET)</h3>
             <div style="display:flex; gap:10px;">
-                <div style="width: 150px;"><input type="month" id="filterMonth" onchange="renderTable()" style="padding:6px;"></div>
-                <div style="width: 200px;"><select id="filterHotel" onchange="renderTable()"><option value="ALL">Бүх Буудал</option></select></div>
+                <div style="width: 150px;"><label>Сараар шүүх:</label><input type="month" id="filterMonth" onchange="renderTable()" style="padding:6px;"></div>
+                <div style="width: 200px;"><label>Буудлаар шүүх:</label><select id="filterHotel" onchange="renderTable()"><option value="ALL">Бүх Буудал</option></select></div>
             </div>
         </div>
         <table>
             <thead>
                 <tr>
-                    <th rowspan="2">Үйлдэл</th>
-                    <th rowspan="2" style="width:18%">Аялал / Буудал</th>
-                    <th rowspan="2">Өрөө</th>
-                    <th rowspan="2" style="width:9%">Огноо</th>
-                    <th rowspan="2">Байр Дүн</th>
-                    <th colspan="2">Өглөө</th>
-                    <th colspan="2">Өдөр</th>
-                    <th colspan="2">Орой</th>
-                    <th rowspan="2">Бусад</th>
-                    <th rowspan="2">Нийт</th>
-                    <th rowspan="2" style="width:9%">Төлбөр</th>
+                    <th rowspan="2">Үйлдэл</th> <th rowspan="2" style="width:18%">Аялал / Буудал</th> <th rowspan="2">Өрөө</th> <th rowspan="2" style="width:9%">Огноо</th>
+                    <th rowspan="2">Байр Дүн</th> <th colspan="3">Хоол (Нэгж * Pax)</th>
+                    <th rowspan="2">Бусад</th> <th rowspan="2">Нийт</th> <th rowspan="2" style="width:9%">Төлбөр</th>
                 </tr>
-                <tr>
-                    <th>#</th> <th>$</th> <th>#</th> <th>$</th> <th>#</th> <th>$</th>
-                </tr>
+                <tr> <th>Өглөө</th> <th>Өдөр</th> <th>Орой</th> </tr>
             </thead>
             <tbody id="tableBody"></tbody>
         </table>
@@ -167,27 +167,71 @@
     let trips = JSON.parse(localStorage.getItem('np_trips')) || [];
     let hotels = JSON.parse(localStorage.getItem('np_hotels')) || [];
     let bookings = JSON.parse(localStorage.getItem('np_hotel_pro_v3')) || [];
+    let roomPrices = JSON.parse(localStorage.getItem('np_hotel_prices_v2')) || {}; 
     let currentRoomList = [];
 
-    window.onload = function() { renderDropdowns(); renderTable(); };
+    window.onload = function() {
+        renderDropdowns(); renderTable(); suggestRoomPrice();
+    };
+
+    // --- DATE LOGIC ---
+    function updateCheckOut() {
+        let checkInVal = document.getElementById('checkIn').value;
+        let nightsVal = parseInt(document.getElementById('nights').value) || 0;
+        if (checkInVal && nightsVal >= 0) {
+            let date = new Date(checkInVal);
+            date.setDate(date.getDate() + nightsVal);
+            let y = date.getFullYear();
+            let m = ('0' + (date.getMonth() + 1)).slice(-2);
+            let d = ('0' + date.getDate()).slice(-2);
+            document.getElementById('checkOut').value = `${y}-${m}-${d}`;
+        }
+        calcTotal();
+    }
+
+    function updateNights() {
+        let d1Str = document.getElementById('checkIn').value;
+        let d2Str = document.getElementById('checkOut').value;
+        if (d1Str && d2Str) {
+            let d1 = new Date(d1Str); let d2 = new Date(d2Str);
+            let diffDays = Math.ceil((d2 - d1) / (1000 * 60 * 60 * 24)); 
+            document.getElementById('nights').value = diffDays > 0 ? diffDays : 0;
+        }
+        calcTotal();
+    }
+
+    // --- PRICE LOGIC ---
+    function suggestRoomPrice() {
+        const hotel = document.getElementById('hotelSelect').value;
+        const type = document.getElementById('tempRoomType').value;
+        if (hotel && roomPrices[hotel] && roomPrices[hotel][type]) {
+            document.getElementById('tempRoomPrice').value = roomPrices[hotel][type];
+        } else {
+            document.getElementById('tempRoomPrice').value = '';
+        }
+    }
+
+    function saveRoomPrice(hotel, type, price) {
+        if(hotel && price > 0) {
+            if (!roomPrices[hotel]) roomPrices[hotel] = {};
+            roomPrices[hotel][type] = price;
+            localStorage.setItem('np_hotel_prices_v2', JSON.stringify(roomPrices));
+        }
+    }
 
     function handleEnter(e, type) { if(e.key === 'Enter') { addNewOption(type); } }
 
-    function formatDate(input) {
-        let v = input.value.replace(/[^0-9]/g, '');
-        if (v.length > 4) v = v.slice(0, 4) + '.' + v.slice(4);
-        if (v.length > 7) v = v.slice(0, 7) + '.' + v.slice(7);
-        input.value = v;
-    }
-
     function addRoomToList() {
+        const hotel = document.getElementById('hotelSelect').value;
         const type = document.getElementById('tempRoomType').value;
         const count = parseFloat(document.getElementById('tempRoomCount').value) || 0;
         const price = parseFloat(document.getElementById('tempRoomPrice').value) || 0;
+
         if (count > 0 && price > 0) {
             currentRoomList.push({ type: type, count: count, price: price });
+            saveRoomPrice(hotel, type, price); 
             renderRoomList();
-            calcTotal();
+            calcTotal(); 
         }
     }
 
@@ -196,35 +240,30 @@
     function renderRoomList() {
         const div = document.getElementById('addedRoomsList'); div.innerHTML = "";
         currentRoomList.forEach((r, index) => {
-            div.innerHTML += `<div class="added-room-item"><span><b>${r.type}</b> (x${r.count}) - ${r.price.toLocaleString()}₮</span><span class="remove-icon" onclick="removeRoomFromList(${index})">X</span></div>`;
+            let item = document.createElement("div");
+            item.className = "added-room-item";
+            item.innerHTML = `<span><b>${r.type}</b> (x${r.count}) - ${r.price.toLocaleString()}₮</span><span class="remove-icon" onclick="removeRoomFromList(${index})">X</span>`;
+            div.appendChild(item);
         });
     }
 
     function calcTotal() {
-        let d1Str = document.getElementById('checkIn').value;
-        let d2Str = document.getElementById('checkOut').value;
-        let nights = 0;
-        if (d1Str.length === 10 && d2Str.length === 10) {
-            const d1 = new Date(d1Str.replace(/\./g, '-'));
-            const d2 = new Date(d2Str.replace(/\./g, '-'));
-            if (d2 > d1) { nights = Math.ceil(Math.abs(d2 - d1) / (1000 * 60 * 60 * 24)); }
-        }
-        document.getElementById('nights').value = nights;
-
+        let nights = parseFloat(document.getElementById('nights').value) || 0;
+        
         let accomTotal = 0;
         currentRoomList.forEach(r => { accomTotal += (r.price * r.count * nights); });
 
-        // FOOD CALCULATION: Qty * Price * PAX COUNT
         const pax = parseFloat(document.getElementById('paxCount').value) || 1;
         
-        const bfTotal = (parseFloat(document.getElementById('bfQty').value) || 0) * (parseFloat(document.getElementById('bfPrice').value) || 0) * pax;
-        const lnTotal = (parseFloat(document.getElementById('lnQty').value) || 0) * (parseFloat(document.getElementById('lnPrice').value) || 0) * pax;
-        const dnTotal = (parseFloat(document.getElementById('dnQty').value) || 0) * (parseFloat(document.getElementById('dnPrice').value) || 0) * pax;
+        // MODIFIED: PRICE * PAX (No Qty)
+        const bfTotal = (parseFloat(document.getElementById('bfPrice').value)||0) * pax;
+        const lnTotal = (parseFloat(document.getElementById('lnPrice').value)||0) * pax;
+        const dnTotal = (parseFloat(document.getElementById('dnPrice').value)||0) * pax;
         
-        const extra = parseFloat(document.getElementById('extraPrice').value) || 0;
-        const discount = parseFloat(document.getElementById('discount').value) || 0;
-        const grand = accomTotal + bfTotal + lnTotal + dnTotal + extra - discount;
-        document.getElementById('grandTotal').innerText = grand.toLocaleString();
+        const extra = parseFloat(document.getElementById('extraPrice').value)||0;
+        const discount = parseFloat(document.getElementById('discount').value)||0;
+
+        document.getElementById('grandTotal').innerText = (accomTotal + bfTotal + lnTotal + dnTotal + extra - discount).toLocaleString();
     }
 
     function addNewOption(type) {
@@ -246,12 +285,14 @@
             let opt = document.createElement('option'); opt.value = h; opt.innerHTML = h; hotelSel.appendChild(opt);
             let filterOpt = document.createElement('option'); filterOpt.value = h; filterOpt.innerHTML = h; filterSel.appendChild(filterOpt);
         });
-        if(currTrip) tripSel.value = currTrip; if(currHotel) hotelSel.value = currHotel; if(currFilter) filterSel.value = currFilter;
+        if(currTrip) tripSel.value = currTrip;
+        if(currHotel) { hotelSel.value = currHotel; suggestRoomPrice(); }
+        if(currFilter) filterSel.value = currFilter;
     }
 
     function saveBooking() {
         const editId = document.getElementById('editId').value;
-        if (currentRoomList.length === 0) return; // Silent return
+        if (currentRoomList.length === 0) return;
         const data = {
             id: editId ? parseInt(editId) : Date.now(),
             trip: document.getElementById('tripSelect').value,
@@ -261,97 +302,83 @@
             nights: document.getElementById('nights').value,
             rooms: currentRoomList,
             paxCount: document.getElementById('paxCount').value,
-            bfQty: document.getElementById('bfQty').value, bfPrice: document.getElementById('bfPrice').value,
-            lnQty: document.getElementById('lnQty').value, lnPrice: document.getElementById('lnPrice').value,
-            dnQty: document.getElementById('dnQty').value, dnPrice: document.getElementById('dnPrice').value,
-            extraName: document.getElementById('extraName').value,
-            extraPrice: document.getElementById('extraPrice').value,
-            discount: document.getElementById('discount').value,
-            grandTotal: document.getElementById('grandTotal').innerText,
-            invDate: document.getElementById('invDate').value,
-            paidDate: document.getElementById('paidDate').value
+            
+            // Modified Data Structure (Only Prices)
+            bfPrice: document.getElementById('bfPrice').value,
+            lnPrice: document.getElementById('lnPrice').value,
+            dnPrice: document.getElementById('dnPrice').value,
+            
+            extraName: document.getElementById('extraName').value, extraPrice: document.getElementById('extraPrice').value,
+            discount: document.getElementById('discount').value, grandTotal: document.getElementById('grandTotal').innerText,
+            invDate: document.getElementById('invDate').value, paidDate: document.getElementById('paidDate').value
         };
-        if (editId) {
-            const index = bookings.findIndex(b => b.id == editId);
-            if (index !== -1) bookings[index] = data;
-        } else {
-            bookings.push(data);
-        }
+        if (editId) { let idx = bookings.findIndex(b => b.id == editId); if (idx !== -1) bookings[idx] = data; } 
+        else { bookings.push(data); }
         localStorage.setItem('np_hotel_pro_v3', JSON.stringify(bookings));
-        cancelEdit();
-        renderTable();
+        cancelEdit(); renderTable();
     }
 
     function editBooking(id) {
-        const b = bookings.find(item => item.id == id);
-        if (!b) return;
+        const b = bookings.find(item => item.id == id); if (!b) return;
         document.getElementById('editId').value = b.id;
-        document.getElementById('tripSelect').value = b.trip;
-        document.getElementById('hotelSelect').value = b.hotel;
-        document.getElementById('checkIn').value = b.checkIn;
-        document.getElementById('checkOut').value = b.checkOut;
+        document.getElementById('tripSelect').value = b.trip; document.getElementById('hotelSelect').value = b.hotel;
+        document.getElementById('checkIn').value = b.checkIn; document.getElementById('checkOut').value = b.checkOut;
         document.getElementById('nights').value = b.nights;
         currentRoomList = b.rooms || []; renderRoomList();
         document.getElementById('paxCount').value = b.paxCount || 1;
-        document.getElementById('bfQty').value = b.bfQty; document.getElementById('bfPrice').value = b.bfPrice;
-        document.getElementById('lnQty').value = b.lnQty; document.getElementById('lnPrice').value = b.lnPrice;
-        document.getElementById('dnQty').value = b.dnQty; document.getElementById('dnPrice').value = b.dnPrice;
-        document.getElementById('extraName').value = b.extraName;
-        document.getElementById('extraPrice').value = b.extraPrice;
-        document.getElementById('discount').value = b.discount;
-        document.getElementById('grandTotal').innerText = b.grandTotal;
-        document.getElementById('invDate').value = b.invDate;
-        document.getElementById('paidDate').value = b.paidDate;
-        document.getElementById('saveBtn').innerText = "ШИНЭЧЛЭХ";
-        document.getElementById('saveBtn').className = "btn-update";
+        
+        document.getElementById('bfPrice').value = b.bfPrice || "";
+        document.getElementById('lnPrice').value = b.lnPrice || "";
+        document.getElementById('dnPrice').value = b.dnPrice || "";
+        
+        document.getElementById('extraName').value = b.extraName; document.getElementById('extraPrice').value = b.extraPrice;
+        document.getElementById('discount').value = b.discount; document.getElementById('grandTotal').innerText = b.grandTotal;
+        document.getElementById('invDate').value = b.invDate; document.getElementById('paidDate').value = b.paidDate;
+        document.getElementById('saveBtn').innerText = "ШИНЭЧЛЭХ"; document.getElementById('saveBtn').className = "btn-update";
         document.getElementById('cancelBtn').style.display = "inline-block";
         document.getElementById('bookingFormCard').classList.add('edit-mode');
-        document.getElementById('formTitle').innerText = "2. Буудал Захиалга (Засах)";
         document.getElementById('bookingFormCard').scrollIntoView({ behavior: 'smooth' });
+        suggestRoomPrice();
     }
 
     function cancelEdit() {
-        const inputs = document.querySelectorAll('#bookingFormCard input');
-        inputs.forEach(i => i.value = '');
-        document.getElementById('nights').value = 0;
-        document.getElementById('grandTotal').innerText = '0';
-        document.getElementById('extraPrice').value = 0;
-        document.getElementById('discount').value = 0;
+        document.querySelectorAll('#bookingFormCard input').forEach(i => i.value = '');
+        document.getElementById('nights').value = 0; document.getElementById('grandTotal').innerText = '0';
+        document.getElementById('extraPrice').value = 0; document.getElementById('discount').value = 0;
         document.getElementById('paxCount').value = 1;
-        currentRoomList = []; renderRoomList();
+        currentRoomList = []; renderRoomList(); suggestRoomPrice();
         document.getElementById('editId').value = "";
-        document.getElementById('saveBtn').innerText = "ХАДГАЛАХ";
-        document.getElementById('saveBtn').className = "btn-save";
+        document.getElementById('saveBtn').innerText = "ХАДГАЛАХ"; document.getElementById('saveBtn').className = "btn-save";
         document.getElementById('cancelBtn').style.display = "none";
         document.getElementById('bookingFormCard').classList.remove('edit-mode');
-        document.getElementById('formTitle').innerText = "2. Буудал Захиалга";
     }
 
     function renderTable() {
-        const tbody = document.getElementById('tableBody');
-        tbody.innerHTML = '';
+        const tbody = document.getElementById('tableBody'); tbody.innerHTML = '';
         const filterHotel = document.getElementById('filterHotel').value;
         const filterMonth = document.getElementById('filterMonth').value;
         bookings.sort((a, b) => (a.checkIn > b.checkIn) ? 1 : -1);
         bookings.forEach((b) => {
             if (filterHotel !== "ALL" && b.hotel !== filterHotel) return;
-            if (filterMonth) { let checkInDash = b.checkIn.replace(/\./g, '-'); if (!checkInDash.startsWith(filterMonth)) return; }
+            if (filterMonth && !b.checkIn.startsWith(filterMonth)) return;
             let row = tbody.insertRow();
             let accomTotal = 0; let roomString = "";
             if(b.rooms) { b.rooms.forEach(r => { accomTotal += (r.price * r.count * b.nights); roomString += `<span class="room-tag">${r.type} x${r.count}</span> `; }); }
+            
             row.innerHTML = `
                 <td><button class="btn-edit" onclick="editBooking(${b.id})">Зас</button><button class="btn-delete" onclick="deleteBooking(${b.id})">X</button></td>
                 <td class="info-cell"><b>${b.trip}</b><br>${b.hotel}<br>Жуулчин: ${b.paxCount}</td>
                 <td class="info-cell" style="text-align:center">${roomString}</td>
                 <td class="info-cell">${b.checkIn}<br>${b.checkOut}<br><b>${b.nights} хон</b></td>
                 <td class="col-money" style="background:#e8daef">${accomTotal.toLocaleString()}</td>
-                <td>${b.bfQty}</td> <td>${parseInt(b.bfPrice||0).toLocaleString()}</td>
-                <td>${b.lnQty}</td> <td>${parseInt(b.lnPrice||0).toLocaleString()}</td>
-                <td>${b.dnQty}</td> <td>${parseInt(b.dnPrice||0).toLocaleString()}</td>
+                
+                <td>${parseInt(b.bfPrice||0).toLocaleString()}</td>
+                <td>${parseInt(b.lnPrice||0).toLocaleString()}</td>
+                <td>${parseInt(b.dnPrice||0).toLocaleString()}</td>
+                
                 <td class="date-cell">${b.extraName}<br>${b.extraPrice}₮<br><span style="color:red">-${b.discount}</span></td>
                 <td class="col-total">${b.grandTotal}</td>
-                <td class="date-cell">Н: ${b.invDate}<br>Т: ${b.paidDate}</td>
-            `;
+                <td class="date-cell">Н: ${b.invDate}<br>Т: ${b.paidDate}</td>`;
         });
     }
 
@@ -362,5 +389,6 @@
         }
     }
 </script>
+
 </body>
 </html>
