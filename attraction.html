@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Attraction Manager</title>
+    <title>Attraction Manager (Shared Guides)</title>
     <style>
-        /* 1. FONT FIXED TO MATCH PREVIOUS PAGES */
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; padding: 20px; color: #333; }
         .container { max-width: 100%; margin: 0 auto; }
         
+        /* Navigation */
         .nav-bar { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
         .nav-btn { padding: 10px 20px; text-decoration: none; color: white; background-color: #7f8c8d; border-radius: 4px; font-weight: bold; }
         .nav-btn.active { background-color: #16a085; } /* Teal for Attraction */
@@ -57,6 +57,7 @@
         <a href="attraction.html" class="nav-btn active">5. ҮЗВЭР</a>
         <a href="transport.html" class="nav-btn">6. ТЭЭВЭР</a>
         <a href="nomad.html" class="nav-btn">7. МАЛЧИН</a>
+        <a href="summary.html" class="nav-btn">8. НЭГДСЭН ДҮН</a>
     </div>
 
     <div class="card" style="background-color: #e8f8f5; border-top-color: #16a085;">
@@ -67,12 +68,7 @@
             <div class="col"><label>Шинэ Үзвэр</label><input type="text" id="newAttr" onkeypress="handleEnter(event, 'attr')"></div>
             <div class="col" style="flex:0.2"><button class="btn-add" onclick="addOpt('attr')">Нэмэх</button></div>
         </div>
-        
-        <div class="row" style="border-top:1px dashed #a2d9ce; padding-top:10px; margin-top:10px;">
-            <div class="col"><label>Шинэ Орчуулагч (Нэр)</label><input type="text" id="newGuideName"></div>
-            <div class="col"><label>Утасны Дугаар</label><input type="text" id="newGuidePhone"></div>
-            <div class="col" style="flex: 0.3;"><button class="btn-add" onclick="addNewGuide()">Хадгалах</button></div>
-        </div>
+        <p style="font-size:11px; color:#666; margin-top:5px;">* Орчуулагчийн мэдээллийг Restaurant цэснээс автоматаар татна.</p>
     </div>
 
     <div class="card" id="bookingFormCard">
@@ -80,20 +76,20 @@
         <input type="hidden" id="editId">
         
         <div class="row">
-            <div class="col"><label>Аялал</label><select id="tripSel"></select></div>
-            <div class="col"><label>Үзвэр/Музей</label><select id="attrSel"></select></div>
+            <div class="col"><label>Аялал</label><select id="tripSel" onchange="autoFillPax()"></select></div>
+            <div class="col"><label>Үзвэр/Музей</label><select id="attrSel" onchange="suggestAttrPrice()"></select></div>
             <div class="col"><label>Огноо</label><input type="date" id="date"></div>
             <div class="col"><label>Цаг</label><input type="time" id="time"></div>
         </div>
 
         <hr style="border:0; border-top:1px dashed #ddd; margin:10px 0;">
 
-        <h4>Хүний тоо & Үнэ (Edit хийж өөрчилж болно)</h4>
+        <h4>Хүний тоо & Үнэ (Auto-Fill)</h4>
         <div class="row">
-            <div class="col"><label>Том хүн (Тоо)</label><input type="number" id="adlQty" oninput="calc()"></div>
-            <div class="col"><label>Том хүн (Үнэ)</label><input type="number" id="adlPrice" oninput="calc()"></div>
-            <div class="col"><label>Хүүхэд (Тоо)</label><input type="number" id="chdQty" oninput="calc()"></div>
-            <div class="col"><label>Хүүхэд (Үнэ)</label><input type="number" id="chdPrice" oninput="calc()"></div>
+            <div class="col"><label>Том хүн (Тоо)</label><input type="number" id="adlQty" placeholder="Тоо..." oninput="calc()"></div>
+            <div class="col"><label>Том хүн (Үнэ)</label><input type="number" id="adlPrice" placeholder="Auto..." oninput="calc()"></div>
+            <div class="col"><label>Хүүхэд (Тоо)</label><input type="number" id="chdQty" placeholder="Тоо..." oninput="calc()"></div>
+            <div class="col"><label>Хүүхэд (Үнэ)</label><input type="number" id="chdPrice" placeholder="Auto..." oninput="calc()"></div>
         </div>
 
         <hr style="border:0; border-top:1px dashed #ddd; margin:10px 0;">
@@ -101,7 +97,7 @@
         <h4>Орчуулагч & Төлбөр</h4>
         <div class="row">
             <div class="col"><label>Орчуулагч Сонгох</label><select id="guideSelect" onchange="fillGuidePhone()"><option value="">Сонгоно уу...</option></select></div>
-            <div class="col"><label>Утас (Auto)</label><input type="text" id="guidePhone"></div>
+            <div class="col"><label>Утас (Auto)</label><input type="text" id="guidePhone" readonly style="background:#f9f9f9;"></div>
             <div class="col"><label>Нэхэмжилсэн</label><input type="date" id="invDate"></div>
             <div class="col"><label>Төлсөн</label><input type="date" id="paidDate"></div>
         </div>
@@ -134,15 +130,62 @@
 </div>
 
 <script>
+    // Storage Keys
     let trips = JSON.parse(localStorage.getItem('np_trips')) || [];
     let attrs = JSON.parse(localStorage.getItem('np_attrs')) || [];
-    let guides = JSON.parse(localStorage.getItem('np_guides')) || []; // Shared with Restaurant
-    let data = JSON.parse(localStorage.getItem('np_attraction_v2')) || [];
+    // Shared Global Data (for Pax)
+    let globalData = JSON.parse(localStorage.getItem('np_global_data')) || {};
+    // Shared Guides (from Restaurant)
+    let guides = JSON.parse(localStorage.getItem('np_guides')) || []; 
+    
+    let data = JSON.parse(localStorage.getItem('np_attraction_v3')) || []; // v3 for updates
+    // Price Memory: attrPrices[name] = { adl: 100, chd: 50 }
+    let attrPrices = JSON.parse(localStorage.getItem('np_attr_prices')) || {};
 
     window.onload = () => { renderOps(); renderTable(); };
 
     function handleEnter(e, type) { if(e.key === 'Enter') addOpt(type); }
     
+    // --- AUTO FILL PAX FROM HOME ---
+    function autoFillPax() {
+        const tripName = document.getElementById('tripSel').value;
+        if(tripName && globalData[tripName]) {
+            document.getElementById('adlQty').value = globalData[tripName].adults || '';
+            document.getElementById('chdQty').value = globalData[tripName].children || '';
+            
+            // Try Auto Guide Match
+            const gName = globalData[tripName].guide;
+            if(gName) {
+                let gSel = document.getElementById('guideSelect');
+                let exists = false;
+                for(let i=0; i<gSel.options.length; i++) { if(gSel.options[i].value === gName) exists = true; }
+                if(!exists) { let opt = new Option(gName, gName); gSel.add(opt); }
+                gSel.value = gName;
+                fillGuidePhone();
+            }
+            calc();
+        }
+    }
+
+    // --- PRICE MEMORY ---
+    function suggestAttrPrice() {
+        let name = document.getElementById('attrSel').value;
+        if(name && attrPrices[name]) {
+            document.getElementById('adlPrice').value = attrPrices[name].adl || '';
+            document.getElementById('chdPrice').value = attrPrices[name].chd || '';
+            calc();
+        }
+    }
+
+    function saveAttrPrice(name) {
+        if(!name) return;
+        attrPrices[name] = {
+            adl: document.getElementById('adlPrice').value,
+            chd: document.getElementById('chdPrice').value
+        };
+        localStorage.setItem('np_attr_prices', JSON.stringify(attrPrices));
+    }
+
     function addOpt(type) {
         let val = document.getElementById(type === 'trip' ? 'newTrip' : 'newAttr').value;
         if(val) {
@@ -153,39 +196,26 @@
         }
     }
 
-    // --- Guide Logic ---
-    function addNewGuide() {
-        const name = document.getElementById('newGuideName').value;
-        const phone = document.getElementById('newGuidePhone').value;
-        if(name) {
-            guides.push({ name: name, phone: phone });
-            localStorage.setItem('np_guides', JSON.stringify(guides));
-            document.getElementById('newGuideName').value = '';
-            document.getElementById('newGuidePhone').value = '';
-            renderOps(); 
-        }
-    }
-
     function fillGuidePhone() {
         const guideName = document.getElementById('guideSelect').value;
         const guide = guides.find(g => g.name === guideName);
-        if(guide) {
-            document.getElementById('guidePhone').value = guide.phone;
-        } else {
-            document.getElementById('guidePhone').value = '';
-        }
+        if(guide) document.getElementById('guidePhone').value = guide.phone;
+        else document.getElementById('guidePhone').value = '';
     }
-    // ------------------
 
     function renderOps() {
         let t = document.getElementById('tripSel'), a = document.getElementById('attrSel'), f = document.getElementById('filterAttr');
         let g = document.getElementById('guideSelect');
+
+        let currG = g.value; // preserve selection
 
         t.innerHTML = ''; a.innerHTML = ''; f.innerHTML = '<option value="ALL">Бүх Үзвэр</option>'; g.innerHTML = '<option value="">Сонгоно уу...</option>';
         
         trips.forEach(x => t.add(new Option(x, x)));
         attrs.forEach(x => { a.add(new Option(x, x)); f.add(new Option(x, x)); });
         guides.forEach(x => g.add(new Option(x.name, x.name)));
+        
+        if(currG) g.value = currG;
     }
 
     function calc() {
@@ -198,12 +228,20 @@
 
     function saveData() {
         let editId = document.getElementById('editId').value;
+        let attrName = document.getElementById('attrSel').value;
+        
+        saveAttrPrice(attrName); // Remember price
+
         let obj = {
             id: editId ? parseInt(editId) : Date.now(),
-            trip: document.getElementById('tripSel').value, attr: document.getElementById('attrSel').value,
-            date: document.getElementById('date').value, time: document.getElementById('time').value,
+            trip: document.getElementById('tripSel').value, 
+            attr: attrName,
+            date: document.getElementById('date').value, 
+            time: document.getElementById('time').value,
+            
             adlQty: document.getElementById('adlQty').value, adlPrice: document.getElementById('adlPrice').value,
             chdQty: document.getElementById('chdQty').value, chdPrice: document.getElementById('chdPrice').value,
+            
             guide: document.getElementById('guideSelect').value, phone: document.getElementById('guidePhone').value,
             inv: document.getElementById('invDate').value, paid: document.getElementById('paidDate').value,
             total: document.getElementById('totalDisplay').innerText
@@ -216,7 +254,7 @@
             data.push(obj);
         }
         
-        localStorage.setItem('np_attraction_v2', JSON.stringify(data));
+        localStorage.setItem('np_attraction_v3', JSON.stringify(data));
         cancelEdit();
         renderTable();
     }
@@ -231,13 +269,18 @@
         document.getElementById('adlQty').value = x.adlQty; document.getElementById('adlPrice').value = x.adlPrice;
         document.getElementById('chdQty').value = x.chdQty; document.getElementById('chdPrice').value = x.chdPrice;
         
+        // Ensure guide exists in list
+        let gSel = document.getElementById('guideSelect');
+        let gExists = false;
+        for(let i=0; i<gSel.options.length; i++) if(gSel.options[i].value == x.guide) gExists = true;
+        if(!gExists && x.guide) gSel.add(new Option(x.guide, x.guide));
+        
         document.getElementById('guideSelect').value = x.guide; 
         document.getElementById('guidePhone').value = x.phone;
         
         document.getElementById('invDate').value = x.inv; document.getElementById('paidDate').value = x.paid;
         calc();
 
-        // UI Change
         document.getElementById('saveBtn').innerText = "ШИНЭЧЛЭХ";
         document.getElementById('saveBtn').className = "btn-update";
         document.getElementById('cancelBtn').style.display = "inline-block";
@@ -288,7 +331,7 @@
     function del(id) { 
         if(confirm('Устгах уу?')) { 
             data = data.filter(x => x.id != id); 
-            localStorage.setItem('np_attraction_v2', JSON.stringify(data)); 
+            localStorage.setItem('np_attraction_v3', JSON.stringify(data)); 
             renderTable(); 
         } 
     }
