@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nomad Family Manager</title>
+    <title>Nomad Manager (Separate Ride Prices)</title>
     <style>
-        /* 1. FIXED FONTS & SIZES */
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; padding: 20px; color: #333; }
         .container { max-width: 100%; margin: 0 auto; }
         
+        /* Navigation */
         .nav-bar { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
         .nav-btn { padding: 10px 20px; text-decoration: none; color: white; background-color: #7f8c8d; border-radius: 4px; font-weight: bold; }
-        .nav-btn.active { background-color: #795548; } /* Brown for Nomad */
+        .nav-btn.active { background-color: #795548; }
         
         .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; border-top: 4px solid #795548; }
         h3 { margin-top: 0; color: #5d4037; border-bottom: 1px solid #ddd; padding-bottom: 10px; margin-bottom: 15px; }
@@ -21,7 +21,7 @@
         .row { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
         .col { flex: 1; min-width: 100px; }
         label { font-weight: bold; font-size: 11px; display: block; margin-bottom: 5px; color: #555; }
-        input, select, textarea { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; width: 100%; box-sizing: border-box; }
+        input, select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; width: 100%; box-sizing: border-box; }
         input:focus, select:focus { border-color: #795548; outline: none; }
         
         .edit-mode { border: 2px solid #f39c12; background-color: #fffdf6; }
@@ -33,7 +33,6 @@
         .btn-update { background-color: #f39c12; color: white; width: 100%; font-size: 16px; padding: 12px; margin-top: 10px;} 
         .btn-edit { background-color: #f39c12; color: white; padding: 4px 8px; font-size: 11px; border-radius: 4px; margin-right: 5px; }
         .btn-delete { background-color: #c0392b; color: white; padding: 4px 8px; font-size: 11px; border-radius: 4px; }
-        /* Special Button for Schedule */
         .btn-print { background-color: #2e86c1; color: white; padding: 4px 8px; font-size: 11px; border-radius: 4px; margin-right: 5px; }
 
         table { width: 100%; border-collapse: collapse; background: white; font-size: 12px; table-layout: auto; }
@@ -54,6 +53,7 @@
     <div class="nav-bar">
         <a href="index.html" class="nav-btn">1. HOTEL</a> <a href="camp.html" class="nav-btn">2. CAMP</a> <a href="restaurant.html" class="nav-btn">3. RESTAURANT</a> <a href="guesthouse.html" class="nav-btn">4. GUEST HOUSE</a> <a href="attraction.html" class="nav-btn">5. ҮЗВЭР</a> <a href="transport.html" class="nav-btn">6. ТЭЭВЭР</a>
         <a href="nomad.html" class="nav-btn active">7. МАЛЧИН</a>
+        <a href="summary.html" class="nav-btn">8. НЭГДСЭН ДҮН</a>
     </div>
 
     <div class="card" style="background-color: #efebe9; border-top-color: #795548;">
@@ -64,11 +64,7 @@
             <div class="col"><label>Шинэ Малчин Айл</label><input type="text" id="newNomad" onkeypress="handleEnter(event, 'nomad')"></div>
             <div class="col" style="flex:0.2"><button class="btn-add" onclick="addOpt('nomad')">Нэмэх</button></div>
         </div>
-        <div class="row" style="border-top:1px dashed #d7ccc8; padding-top:10px; margin-top:10px;">
-            <div class="col"><label>Шинэ Орчуулагч (Нэр)</label><input type="text" id="newGuideName"></div>
-            <div class="col"><label>Утас</label><input type="text" id="newGuidePhone"></div>
-            <div class="col" style="flex: 0.3;"><button class="btn-add" onclick="addNewGuide()">Хадгалах</button></div>
-        </div>
+        <p style="font-size:11px; color:#666; margin-top:5px;">* Орчуулагчийн мэдээллийг Restaurant цэснээс автоматаар татна.</p>
     </div>
 
     <div class="card" id="bookingFormCard">
@@ -76,7 +72,7 @@
         <input type="hidden" id="editId">
         
         <div class="row">
-            <div class="col"><label>Аялал</label><select id="tripSel"></select></div>
+            <div class="col"><label>Аялал</label><select id="tripSel" onchange="autoFillPax()"></select></div>
             <div class="col"><label>Малчин Айл</label><select id="nomadSel"></select></div>
             <div class="col"><label>Ирэх Огноо</label><input type="date" id="inDate"></div>
             <div class="col"><label>Хоног</label><input type="number" id="days" value="1" oninput="calc()"></div>
@@ -86,19 +82,19 @@
 
         <h4>Гэр & Хоол (Жуулчин + Монгол)</h4>
         <div class="row">
-            <div class="col"><label>Жуулчин Тоо</label><input type="number" id="paxF" oninput="calc()"></div>
-            <div class="col"><label>Монгол Тоо</label><input type="number" id="paxM" oninput="calc()"></div>
+            <div class="col"><label>Жуулчин Тоо</label><input type="number" id="paxF" placeholder="Тоо..." oninput="calc()"></div>
+            <div class="col"><label>Монгол Тоо</label><input type="number" id="paxM" placeholder="Тоо..." oninput="calc()"></div>
             
-            <div class="col" style="background:#f9e79f; padding:5px; border-radius:4px;">
-                <label>Гэрийн Үнэ (Зөвхөн жуулчин)</label>
-                <input type="number" id="gerPrice" placeholder="Нэгж үнэ" oninput="calc()">
+            <div class="col" style="background:#fff3e0; padding:5px; border-radius:4px;">
+                <label>Гэрийн Үнэ (Жуулчин)</label>
+                <input type="number" id="gerPrice" placeholder="Үнэ..." oninput="calc()">
             </div>
             
-            <div class="col" style="background:#a9dfbf; padding:5px; border-radius:4px;">
+            <div class="col" style="background:#e8f5e9; padding:5px; border-radius:4px;">
                 <label>Хоолны Үнэ (Нэгж)</label>
-                <input type="number" id="foodPrice" placeholder="Нэгж үнэ" oninput="calc()">
+                <input type="number" id="foodPrice" placeholder="Үнэ..." oninput="calc()">
             </div>
-            <div class="col" style="background:#a9dfbf; padding:5px; border-radius:4px;">
+            <div class="col" style="background:#e8f5e9; padding:5px; border-radius:4px;">
                 <label>Хоолны Давтамж</label>
                 <input type="number" id="foodFreq" value="1" oninput="calc()">
             </div>
@@ -106,17 +102,15 @@
 
         <hr style="border:0; border-top:1px dashed #ddd; margin:10px 0;">
 
-        <h4>Морь & Тэмээ (Хөтөч + Хүн)</h4>
+        <h4>Уналга (Морь / Тэмээ) - Үнэ өөр байж болно</h4>
         <div class="row">
-            <div class="col"><label>Морь Унах Хүн</label><input type="number" id="horsePax" oninput="calc()"></div>
-            <div class="col"><label>Морины Хөтөч</label><input type="number" id="horseGuide" oninput="calc()"></div>
-            <div class="col"><label>Морь Үнэ (Нэгж)</label><input type="number" id="horsePrice" oninput="calc()"></div>
-            <div class="col"><label>Унасан хугацаа (Өдөр)</label><input type="number" id="horseDays" value="1" oninput="calc()"></div>
-        </div>
-        <div class="row">
-            <div class="col"><label>Тэмээ Унах Хүн</label><input type="number" id="camelPax" oninput="calc()"></div>
-            <div class="col"><label>Тэмээ Хөтөч</label><input type="number" id="camelGuide" oninput="calc()"></div>
-            <div class="col"><label>Тэмээ Үнэ (Нэгж)</label><input type="number" id="camelPrice" oninput="calc()"></div>
+            <div class="col"><label>Унасан Хүн (Тоо)</label><input type="number" id="ridePax" placeholder="Жуулчин..." oninput="calc()"></div>
+            <div class="col"><label>Жуулчин (Үнэ)</label><input type="number" id="ridePaxPrice" placeholder="Үнэ..." oninput="calc()"></div>
+            
+            <div class="col"><label>Унасан Хөтөч (Тоо)</label><input type="number" id="rideGuide" placeholder="Хөтөч..." oninput="calc()"></div>
+            <div class="col"><label>Хөтөч (Үнэ)</label><input type="number" id="rideGuidePrice" placeholder="Үнэ..." oninput="calc()"></div>
+            
+            <div class="col"><label>Хугацаа (Өдөр/Цаг)</label><input type="number" id="rideDays" value="1" oninput="calc()"></div>
         </div>
 
         <hr style="border:0; border-top:1px dashed #ddd; margin:10px 0;">
@@ -124,10 +118,10 @@
         <h4>Бусад & Орчуулагч</h4>
         <div class="row">
             <div class="col"><label>Нэмэлт (Хорхог/Шорлог)</label><input type="text" id="extraName"></div>
-            <div class="col"><label>Нэмэлт Үнэ</label><input type="number" id="extraPrice" oninput="calc()"></div>
+            <div class="col"><label>Нэмэлт Үнэ</label><input type="number" id="extraPrice" placeholder="Дүн..." oninput="calc()"></div>
             
             <div class="col"><label>Орчуулагч</label><select id="guideSelect" onchange="fillGuidePhone()"><option value="">Сонгоно уу...</option></select></div>
-            <div class="col"><label>Утас</label><input type="text" id="guidePhone" readonly style="background:#eee;"></div>
+            <div class="col"><label>Утас</label><input type="text" id="guidePhone" readonly style="background:#f9f9f9;"></div>
         </div>
 
         <div class="row">
@@ -154,7 +148,7 @@
                 <tr>
                     <th>Үйлдэл</th> <th>Аялал / Айл</th> <th>Огноо / Хоног</th> 
                     <th>Хүн (Ж/М)</th> <th>Гэр/Хоол Үнэ</th> 
-                    <th>Морь/Тэмээ</th> <th>Нийт Дүн</th> <th>Төлбөр</th>
+                    <th>Уналга (Нийт)</th> <th>Нийт Дүн</th> <th>Төлбөр</th>
                 </tr>
             </thead>
             <tbody id="tbody"></tbody>
@@ -165,8 +159,11 @@
 <script>
     let trips = JSON.parse(localStorage.getItem('np_trips')) || [];
     let nomads = JSON.parse(localStorage.getItem('np_nomads')) || [];
-    let guides = JSON.parse(localStorage.getItem('np_guides')) || []; // Share guides
-    let data = JSON.parse(localStorage.getItem('np_nomad_v2')) || [];
+    // Shared Data
+    let guides = JSON.parse(localStorage.getItem('np_guides')) || []; 
+    let globalData = JSON.parse(localStorage.getItem('np_global_data')) || {};
+
+    let data = JSON.parse(localStorage.getItem('np_nomad_v4')) || []; // v4 for split prices
 
     window.onload = () => { renderOps(); renderTable(); };
 
@@ -181,25 +178,34 @@
         }
     }
 
-    // --- Guide Logic ---
-    function addNewGuide() {
-        const name = document.getElementById('newGuideName').value;
-        const phone = document.getElementById('newGuidePhone').value;
-        if(name) {
-            guides.push({ name: name, phone: phone });
-            localStorage.setItem('np_guides', JSON.stringify(guides));
-            document.getElementById('newGuideName').value = '';
-            document.getElementById('newGuidePhone').value = '';
-            renderOps();
+    // --- AUTO FILL PAX ---
+    function autoFillPax() {
+        const tripName = document.getElementById('tripSel').value;
+        if(tripName && globalData[tripName]) {
+            // Pax
+            let total = (globalData[tripName].adults || 0) + (globalData[tripName].children || 0);
+            document.getElementById('paxF').value = total || '';
+            
+            // Guide
+            const gName = globalData[tripName].guide;
+            if(gName) {
+                let gSel = document.getElementById('guideSelect');
+                let exists = false;
+                for(let i=0; i<gSel.options.length; i++) if(gSel.options[i].value === gName) exists = true;
+                if(!exists) { let opt = new Option(gName, gName); gSel.add(opt); }
+                gSel.value = gName;
+                fillGuidePhone();
+            }
+            calc();
         }
     }
+
     function fillGuidePhone() {
         const guideName = document.getElementById('guideSelect').value;
         const guide = guides.find(g => g.name === guideName);
         if(guide) document.getElementById('guidePhone').value = guide.phone;
         else document.getElementById('guidePhone').value = '';
     }
-    // ------------------
 
     function renderOps() {
         let t=document.getElementById('tripSel'), n=document.getElementById('nomadSel'), f=document.getElementById('filterNomad');
@@ -219,31 +225,29 @@
         let pf=parseFloat(document.getElementById('paxF').value)||0;
         let pm=parseFloat(document.getElementById('paxM').value)||0;
         
-        // Ger Cost (Only Tourists Pay Ger Price)
+        // Ger Cost
         let gp=parseFloat(document.getElementById('gerPrice').value)||0;
         let gerTotal = (pf * gp * days); 
 
-        // Food Cost (All People * Frequency * Price)
+        // Food Cost
         let fp=parseFloat(document.getElementById('foodPrice').value)||0;
         let ff=parseFloat(document.getElementById('foodFreq').value)||1;
         let foodTotal = (pf + pm) * fp * ff;
 
-        // Horse Cost (Pax + Guide) * Price * Duration
-        let hpax=parseFloat(document.getElementById('horsePax').value)||0;
-        let hguide=parseFloat(document.getElementById('horseGuide').value)||0;
-        let hprice=parseFloat(document.getElementById('horsePrice').value)||0;
-        let hdays=parseFloat(document.getElementById('horseDays').value)||1;
-        let horseTotal = (hpax + hguide) * hprice * hdays;
-
-        // Camel Cost
-        let cpax=parseFloat(document.getElementById('camelPax').value)||0;
-        let cguide=parseFloat(document.getElementById('camelGuide').value)||0;
-        let cprice=parseFloat(document.getElementById('camelPrice').value)||0;
-        let camelTotal = (cpax + cguide) * cprice; // Assuming per ride, add duration if needed
+        // RIDE COST (Separate Prices)
+        let rPax = parseFloat(document.getElementById('ridePax').value)||0;
+        let rPaxP = parseFloat(document.getElementById('ridePaxPrice').value)||0; // Tourist Price
+        
+        let rGuide = parseFloat(document.getElementById('rideGuide').value)||0;
+        let rGuideP = parseFloat(document.getElementById('rideGuidePrice').value)||0; // Guide Price
+        
+        let rDays = parseFloat(document.getElementById('rideDays').value)||1;
+        
+        let rideTotal = ((rPax * rPaxP) + (rGuide * rGuideP)) * rDays;
 
         let ep=parseFloat(document.getElementById('extraPrice').value)||0;
 
-        let total = gerTotal + foodTotal + horseTotal + camelTotal + ep;
+        let total = gerTotal + foodTotal + rideTotal + ep;
         document.getElementById('totalDisplay').innerText = total.toLocaleString();
     }
 
@@ -258,11 +262,14 @@
             gerPrice: document.getElementById('gerPrice').value, 
             foodPrice: document.getElementById('foodPrice').value, foodFreq: document.getElementById('foodFreq').value,
             
-            horsePax: document.getElementById('horsePax').value, horseGuide: document.getElementById('horseGuide').value,
-            horsePrice: document.getElementById('horsePrice').value, horseDays: document.getElementById('horseDays').value,
+            // Combined Ride Data (Split Prices)
+            ridePax: document.getElementById('ridePax').value, 
+            ridePaxPrice: document.getElementById('ridePaxPrice').value,
             
-            camelPax: document.getElementById('camelPax').value, camelGuide: document.getElementById('camelGuide').value,
-            camelPrice: document.getElementById('camelPrice').value,
+            rideGuide: document.getElementById('rideGuide').value,
+            rideGuidePrice: document.getElementById('rideGuidePrice').value,
+            
+            rideDays: document.getElementById('rideDays').value,
             
             extraName: document.getElementById('extraName').value, extraPrice: document.getElementById('extraPrice').value,
             
@@ -278,7 +285,7 @@
             data.push(obj);
         }
 
-        localStorage.setItem('np_nomad_v2', JSON.stringify(data));
+        localStorage.setItem('np_nomad_v4', JSON.stringify(data));
         cancelEdit();
         renderTable();
     }
@@ -290,18 +297,26 @@
         document.getElementById('paxM').value = x.paxM; document.getElementById('gerPrice').value = x.gerPrice;
         document.getElementById('foodPrice').value = x.foodPrice; document.getElementById('foodFreq').value = x.foodFreq || 1;
         
-        document.getElementById('horsePax').value = x.horsePax; document.getElementById('horseGuide').value = x.horseGuide;
-        document.getElementById('horsePrice').value = x.horsePrice; document.getElementById('horseDays').value = x.horseDays || 1;
+        document.getElementById('ridePax').value = x.ridePax; 
+        document.getElementById('ridePaxPrice').value = x.ridePaxPrice;
         
-        document.getElementById('camelPax').value = x.camelPax; document.getElementById('camelGuide').value = x.camelGuide;
-        document.getElementById('camelPrice').value = x.camelPrice;
+        document.getElementById('rideGuide').value = x.rideGuide;
+        document.getElementById('rideGuidePrice').value = x.rideGuidePrice;
+        
+        document.getElementById('rideDays').value = x.rideDays || 1;
         
         document.getElementById('extraName').value = x.extraName; document.getElementById('extraPrice').value = x.extraPrice;
+        
+        // Ensure guide exists
+        let gSel = document.getElementById('guideSelect');
+        let gExists = false;
+        for(let i=0; i<gSel.options.length; i++) if(gSel.options[i].value == x.guide) gExists = true;
+        if(!gExists && x.guide) gSel.add(new Option(x.guide, x.guide));
+        
         document.getElementById('guideSelect').value = x.guide; document.getElementById('guidePhone').value = x.phone;
         document.getElementById('inv').value = x.inv; document.getElementById('paid').value = x.paid;
         calc();
 
-        // UI
         document.getElementById('saveBtn').innerText = "ШИНЭЧЛЭХ";
         document.getElementById('saveBtn').className = "btn-update";
         document.getElementById('cancelBtn').style.display = "inline-block";
@@ -315,7 +330,8 @@
         document.getElementById('totalDisplay').innerText='0';
         document.getElementById('days').value = 1;
         document.getElementById('foodFreq').value = 1;
-        document.getElementById('horseDays').value = 1;
+        document.getElementById('rideDays').value = 1;
+        document.getElementById('guideSelect').value = "";
         
         document.getElementById('editId').value = "";
         document.getElementById('saveBtn').innerText = "ХАДГАЛАХ";
@@ -337,6 +353,10 @@
             if(filterMonth && !x.inDate.startsWith(filterMonth)) return;
 
             let row = tb.insertRow();
+            
+            // Ride Total for display
+            let rideT = ((parseFloat(x.ridePax||0)*parseFloat(x.ridePaxPrice||0)) + (parseFloat(x.rideGuide||0)*parseFloat(x.rideGuidePrice||0))) * parseFloat(x.rideDays||1);
+
             row.innerHTML = `
             <td>
                 <button class="btn-edit" onclick="loadEdit(${x.id})">Зас</button>
@@ -346,17 +366,16 @@
             <td class="info-cell">${x.inDate}<br>(${x.days} хоног)</td>
             <td>G:${x.paxF} / M:${x.paxM}</td>
             <td class="col-money">${parseInt(x.gerPrice||0).toLocaleString()} <br> Food:${parseInt(x.foodPrice||0).toLocaleString()}</td>
-            <td class="info-cell">Морь: ${parseInt(x.horsePax)+parseInt(x.horseGuide)} <br> Тэм: ${parseInt(x.camelPax)+parseInt(x.camelGuide)}</td>
+            <td class="info-cell">Уналга: ${parseInt(x.ridePax)+parseInt(x.rideGuide)}<br>${rideT.toLocaleString()}₮</td>
             <td class="col-total">${x.total}</td>
             <td class="date-cell">
-                <button class="btn-print" onclick="showSchedule('${x.nomad}','${x.inDate}','${x.paxF}','${x.paxM}','${x.guide}','${x.phone}','${x.horsePax}','${x.inDate}')">Хуваарь</button>
+                <button class="btn-print" onclick="showSchedule('${x.nomad}','${x.inDate}','${x.paxF}','${x.paxM}','${x.guide}','${x.phone}','${parseInt(x.ridePax)+parseInt(x.rideGuide)}','${x.inDate}')">Хуваарь</button>
                 <br>Н:${x.inv}<br>Т:${x.paid}
             </td>`;
         });
     }
 
     function showSchedule(name, date, paxF, paxM, guide, phone, horse, horseDate) {
-        // This creates the "No Price" schedule view for the family
         alert(`--- АЙЛД ӨГӨХ ХУВААРЬ ---\n\n` + 
               `Айл: ${name}\n` +
               `Очих огноо: ${date}\n` +
@@ -365,14 +384,14 @@
               `Орчуулагч: ${guide} (${phone})\n` +
               `-------------------\n` +
               `Захиалга:\n` +
-              `- Морь унах: ${horse} хүн (${horseDate})\n` +
+              `- Уналга (Морь/Тэмээ): ${horse} хүн (${horseDate})\n` +
               `- Хоол: Өглөө/Өдөр/Орой`);
     }
 
     function del(id) { 
         if(confirm('Устгах уу?')){ 
             data = data.filter(x => x.id != id); 
-            localStorage.setItem('np_nomad_v2', JSON.stringify(data)); 
+            localStorage.setItem('np_nomad_v4', JSON.stringify(data)); 
             renderTable(); 
         }
     }
