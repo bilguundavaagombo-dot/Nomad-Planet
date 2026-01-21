@@ -3,27 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Guest House Manager</title>
+    <title>Guest House Manager (Full Price Memory)</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; padding: 20px; color: #333; }
         .container { max-width: 100%; margin: 0 auto; }
         
-        /* Navigation */
         .nav-bar { display: flex; gap: 10px; margin-bottom: 20px; }
         .nav-btn { padding: 10px 20px; text-decoration: none; color: white; background-color: #7f8c8d; border-radius: 4px; font-weight: bold; }
-        .nav-btn.active { background-color: #8e44ad; } /* Purple for Guest House */
+        .nav-btn.active { background-color: #8e44ad; }
 
-        /* Theme */
         .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; border-top: 4px solid #8e44ad; }
-        
         h3 { margin-top: 0; color: #6c3483; border-bottom: 1px solid #ddd; padding-bottom: 10px; margin-bottom: 15px; }
-        
-        .big-title { 
-            font-size: 24px; font-weight: 800; color: #6c3483; 
-            text-transform: uppercase; border-bottom: 3px solid #8e44ad; 
-            padding-bottom: 10px; margin-bottom: 15px; margin-top: 0;
-        }
-
+        .big-title { font-size: 24px; font-weight: 800; color: #6c3483; text-transform: uppercase; border-bottom: 3px solid #8e44ad; padding-bottom: 10px; margin-bottom: 15px; margin-top: 0; }
         h4 { margin: 10px 0 5px 0; color: #555; font-size: 14px; text-transform: uppercase; border-bottom: 1px dashed #ccc; padding-bottom: 5px;}
 
         .row { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
@@ -47,7 +38,6 @@
         th { background-color: #8e44ad; color: white; font-weight: 600; font-size: 11px; }
         tr:nth-child(even) { background-color: #f9f9f9; }
         tr:hover { background-color: #e8daef; }
-        
         .col-money { font-weight: bold; color: #2c3e50; background-color: #f4f6f7; }
         .col-total { font-weight: bold; color: #8e44ad; background-color: #f4ecf7; font-size: 14px; }
         .info-cell { text-align: left; font-size: 12px; line-height: 1.4; }
@@ -59,7 +49,6 @@
 
 <div class="container">
 
-    <div class="container">
     <div class="nav-bar">
         <a href="index.html" class="nav-btn">1. HOTEL</a>
         <a href="camp.html" class="nav-btn">2. CAMP</a>
@@ -68,6 +57,7 @@
         <a href="attraction.html" class="nav-btn">5. ҮЗВЭР</a>
         <a href="transport.html" class="nav-btn">6. ТЭЭВЭР</a>
         <a href="nomad.html" class="nav-btn">7. МАЛЧИН</a>
+        <a href="summary.html" class="nav-btn">8. НЭГДСЭН ДҮН</a>
     </div>
 
     <div class="card" style="background-color: #f5eef8; border-top-color: #af7ac5;">
@@ -78,6 +68,9 @@
             
             <div class="col"><label>Шинэ Guest House</label><input type="text" id="newGHInput" onkeypress="handleEnter(event, 'gh')"></div>
             <div class="col" style="flex: 0.3;"><button class="btn-add" onclick="addNewOption('gh')">Нэмэх</button></div>
+            
+            <div class="col"><label>Шинэ Байрны Төрөл</label><input type="text" id="newTypeInput" onkeypress="handleEnter(event, 'type')"></div>
+            <div class="col" style="flex: 0.3;"><button class="btn-add" onclick="addNewOption('type')">Нэмэх</button></div>
         </div>
     </div>
 
@@ -87,39 +80,38 @@
         
         <div class="row">
             <div class="col"><label>Аяллын нэр</label><select id="tripSelect"></select></div>
-            <div class="col"><label>Guest House нэр</label><select id="ghSelect"></select></div>
-            <div class="col"><label>Ирэх (Y.M.D)</label><input type="text" id="checkIn" placeholder="2026.06.01" oninput="formatDate(this); calcTotal()"></div>
-            <div class="col"><label>Буцах (Y.M.D)</label><input type="text" id="checkOut" placeholder="2026.06.03" oninput="formatDate(this); calcTotal()"></div>
-            <div class="col" style="flex:0.5"><label>Хоног</label><input type="text" id="nights" readonly value="0" style="background:#eee;"></div>
+            <div class="col"><label>Guest House нэр</label><select id="ghSelect" onchange="suggestGHPrices()"></select></div>
+            
+            <div class="col"><label>Орох (Check In)</label><input type="date" id="checkIn" onchange="updateCheckOut()"></div>
+            <div class="col" style="flex:0.5"><label>Хоног</label><input type="number" id="nights" value="1" oninput="updateCheckOut()"></div>
+            <div class="col"><label>Гарах (Check Out)</label><input type="date" id="checkOut" onchange="updateNights()"></div>
         </div>
 
         <div class="row">
-            <div class="col"><label>Байр/Өрөөний төрөл</label><select id="accomType"><option>Ger (Гэр)</option><option>House (Байшин)</option><option>Dormitory</option></select></div>
-            <div class="col"><label>Зохион байгуулалт</label><select id="roomConfig"><option>Twin</option><option>Double</option><option>Triple</option><option>Family</option><option>Single</option></select></div>
-        </div>
-
-        <hr style="border:0; border-top:1px dashed #ddd; margin:10px 0;">
-
-        <h4>Жуулчин & Монгол (Тоо ба Үнэ)</h4>
-        <div class="row">
-            <div class="col"><label>Гадаад (Том) Тоо</label><input type="number" id="forAdlQty" oninput="calcTotal()"></div>
-            <div class="col"><label>Гадаад (Том) Үнэ</label><input type="number" id="forAdlPrice" oninput="calcTotal()"></div>
-            <div class="col"><label>Гадаад (Хүү) Тоо</label><input type="number" id="forChdQty" oninput="calcTotal()"></div>
-            <div class="col"><label>Гадаад (Хүү) Үнэ</label><input type="number" id="forChdPrice" oninput="calcTotal()"></div>
-            <div class="col" style="border-left:2px solid #eee; padding-left:10px;"><label>Монгол (Том) Тоо</label><input type="number" id="monAdlQty" oninput="calcTotal()"></div>
-            <div class="col"><label>Монгол (Том) Үнэ</label><input type="number" id="monAdlPrice" oninput="calcTotal()"></div>
+            <div class="col"><label>Байр/Өрөөний төрөл</label><select id="accomType" onchange="suggestGHPrices()"></select></div>
         </div>
 
         <hr style="border:0; border-top:1px dashed #ddd; margin:10px 0;">
 
-        <h4>Хоол (Давтамж x Үнэ x Бүх хүмүүс)</h4>
+        <h4>Тариф (Хүн x Үнэ) - Auto Fill</h4>
         <div class="row">
-            <div class="col"><label>Өглөө Тоо</label><input type="number" id="bfQty" oninput="calcTotal()"></div>
-            <div class="col"><label>Өглөө Үнэ</label><input type="number" id="bfPrice" oninput="calcTotal()"></div>
-            <div class="col"><label>Өдөр Тоо</label><input type="number" id="lnQty" oninput="calcTotal()"></div>
-            <div class="col"><label>Өдөр Үнэ</label><input type="number" id="lnPrice" oninput="calcTotal()"></div>
-            <div class="col"><label>Орой Тоо</label><input type="number" id="dnQty" oninput="calcTotal()"></div>
-            <div class="col"><label>Орой Үнэ</label><input type="number" id="dnPrice" oninput="calcTotal()"></div>
+            <div class="col"><label>Гадаад (Том) Тоо</label><input type="number" id="forAdlQty" placeholder="Тоо..." oninput="calcTotal()"></div>
+            <div class="col"><label>Гадаад (Том) Үнэ</label><input type="number" id="forAdlPrice" placeholder="Auto..." oninput="calcTotal()"></div>
+            
+            <div class="col"><label>Гадаад (Хүү) Тоо</label><input type="number" id="forChdQty" placeholder="Тоо..." oninput="calcTotal()"></div>
+            <div class="col"><label>Гадаад (Хүү) Үнэ</label><input type="number" id="forChdPrice" placeholder="Auto..." oninput="calcTotal()"></div>
+            
+            <div class="col" style="border-left:2px solid #eee; padding-left:10px;"><label>Жолооч/Хөтөч Тоо</label><input type="number" id="staffQty" value="2" oninput="calcTotal()"></div>
+            <div class="col"><label>Жолооч/Хөтөч Үнэ</label><input type="number" id="staffPrice" placeholder="Auto..." oninput="calcTotal()"></div>
+        </div>
+
+        <hr style="border:0; border-top:1px dashed #ddd; margin:10px 0;">
+
+        <h4>Хоол (Үнэ x Бүх хүмүүс) - Auto Fill</h4>
+        <div class="row">
+            <div class="col"><label>Өглөө Үнэ</label><input type="number" id="bfPrice" placeholder="Auto..." oninput="calcTotal()"></div>
+            <div class="col"><label>Өдөр Үнэ</label><input type="number" id="lnPrice" placeholder="Auto..." oninput="calcTotal()"></div>
+            <div class="col"><label>Орой Үнэ</label><input type="number" id="dnPrice" placeholder="Auto..." oninput="calcTotal()"></div>
         </div>
 
         <hr style="border:0; border-top:1px dashed #ddd; margin:10px 0;">
@@ -127,11 +119,11 @@
         <h4>Бусад & Огноо</h4>
         <div class="row">
             <div class="col" style="flex:2"><label>Нэмэлт / Машин түрээс</label><input type="text" id="extraName" placeholder="Жнь: Хархорин машин..."></div>
-            <div class="col"><label>Нэмэлт Үнэ</label><input type="number" id="extraPrice" value="0" oninput="calcTotal()"></div>
-            <div class="col"><label style="color:red;">Хөнгөлөлт (-)</label><input type="number" id="discount" value="0" style="color:red;" oninput="calcTotal()"></div>
+            <div class="col"><label>Нэмэлт Үнэ</label><input type="number" id="extraPrice" placeholder="Дүн..." oninput="calcTotal()"></div>
+            <div class="col"><label style="color:red;">Хөнгөлөлт (-)</label><input type="number" id="discount" placeholder="0" style="color:red;" oninput="calcTotal()"></div>
             
-            <div class="col"><label>Нэхэмжилсэн</label><input type="text" id="invDate" placeholder="Y.M.D" oninput="formatDate(this)"></div>
-            <div class="col"><label>Төлсөн</label><input type="text" id="paidDate" placeholder="Y.M.D" oninput="formatDate(this)"></div>
+            <div class="col"><label>Нэхэмжилсэн</label><input type="date" id="invDate"></div>
+            <div class="col"><label>Төлсөн</label><input type="date" id="paidDate"></div>
         </div>
 
         <div class="total-box">НИЙТ ТӨЛБӨР: <span id="grandTotal">0</span> ₮</div>
@@ -160,18 +152,16 @@
                 <tr>
                     <th rowspan="2">Үйлдэл</th>
                     <th rowspan="2" style="width:15%">Аялал / GH</th>
-                    <th rowspan="2">Байр / ЗБ</th>
+                    <th rowspan="2">Байр</th>
                     <th rowspan="2" style="width:8%">Огноо</th>
-                    <th colspan="2">Гадаад (Том)</th>
-                    <th colspan="2">Гадаад (Хүү)</th>
-                    <th colspan="2">Монгол (Том)</th>
-                    <th colspan="2">Хоол</th>
-                    <th rowspan="2">Бусад / Машин</th>
+                    <th colspan="3">Тариф (Qty)</th>
+                    <th rowspan="2">Хоол</th>
+                    <th rowspan="2">Бусад</th>
                     <th rowspan="2">Нийт</th>
                     <th rowspan="2" style="width:8%">Төлбөр</th>
                 </tr>
                 <tr>
-                    <th>#</th> <th>$</th> <th>#</th> <th>$</th> <th>#</th> <th>$</th> <th>Тоо</th> <th>Үнэ</th>
+                    <th>Гадаад</th> <th>Хүүхэд</th> <th>Staff</th>
                 </tr>
             </thead>
             <tbody id="tableBody"></tbody>
@@ -181,53 +171,110 @@
 </div>
 
 <script>
-    // Storage Keys
     let trips = JSON.parse(localStorage.getItem('np_trips')) || [];
     let guesthouses = JSON.parse(localStorage.getItem('np_guesthouses')) || [];
-    let bookings = JSON.parse(localStorage.getItem('np_gh_bookings')) || [];
+    let accomTypes = JSON.parse(localStorage.getItem('np_gh_types')) || ['Ger (Гэр)', 'Wooden House', 'Dormitory'];
+    let bookings = JSON.parse(localStorage.getItem('np_gh_bookings_v3')) || []; // Updated Version
+    
+    // Structure: prices[ghName][accomType] = { fa, fc, st, bf, ln, dn }
+    let ghPrices = JSON.parse(localStorage.getItem('np_gh_prices_v2')) || {}; 
 
     window.onload = function() {
         renderDropdowns();
         renderTable();
+        suggestGHPrices();
     };
+
+    // --- DATE LOGIC ---
+    function updateCheckOut() {
+        let checkInVal = document.getElementById('checkIn').value;
+        let nightsVal = parseInt(document.getElementById('nights').value) || 0;
+        if (checkInVal && nightsVal >= 0) {
+            let date = new Date(checkInVal);
+            date.setDate(date.getDate() + nightsVal);
+            let y = date.getFullYear();
+            let m = ('0' + (date.getMonth() + 1)).slice(-2);
+            let d = ('0' + date.getDate()).slice(-2);
+            document.getElementById('checkOut').value = `${y}-${m}-${d}`;
+        }
+        calcTotal();
+    }
+
+    function updateNights() {
+        let d1Str = document.getElementById('checkIn').value;
+        let d2Str = document.getElementById('checkOut').value;
+        if (d1Str && d2Str) {
+            let d1 = new Date(d1Str); let d2 = new Date(d2Str);
+            let diffDays = Math.ceil((d2 - d1) / (1000 * 60 * 60 * 24)); 
+            document.getElementById('nights').value = diffDays > 0 ? diffDays : 0;
+        }
+        calcTotal();
+    }
+
+    // --- PRICE MEMORY (Including Food) ---
+    function suggestGHPrices() {
+        const gh = document.getElementById('ghSelect').value;
+        const type = document.getElementById('accomType').value;
+        
+        if (gh && type && ghPrices[gh] && ghPrices[gh][type]) {
+            const p = ghPrices[gh][type];
+            // Accom
+            document.getElementById('forAdlPrice').value = p.fa || '';
+            document.getElementById('forChdPrice').value = p.fc || '';
+            document.getElementById('staffPrice').value = p.st || '';
+            // Food
+            document.getElementById('bfPrice').value = p.bf || '';
+            document.getElementById('lnPrice').value = p.ln || '';
+            document.getElementById('dnPrice').value = p.dn || '';
+        } else {
+            // Clear if no memory
+            document.getElementById('forAdlPrice').value = '';
+            document.getElementById('forChdPrice').value = '';
+            document.getElementById('staffPrice').value = '';
+            document.getElementById('bfPrice').value = '';
+            document.getElementById('lnPrice').value = '';
+            document.getElementById('dnPrice').value = '';
+        }
+        calcTotal();
+    }
+
+    function saveCurrentGHPrices(gh, type) {
+        if (!gh || !type) return;
+        if (!ghPrices[gh]) ghPrices[gh] = {};
+        
+        ghPrices[gh][type] = {
+            fa: document.getElementById('forAdlPrice').value,
+            fc: document.getElementById('forChdPrice').value,
+            st: document.getElementById('staffPrice').value,
+            // Save Food Prices
+            bf: document.getElementById('bfPrice').value,
+            ln: document.getElementById('lnPrice').value,
+            dn: document.getElementById('dnPrice').value
+        };
+        localStorage.setItem('np_gh_prices_v2', JSON.stringify(ghPrices));
+    }
 
     function handleEnter(e, type) { if(e.key === 'Enter') { addNewOption(type); } }
 
-    function formatDate(input) {
-        let v = input.value.replace(/[^0-9]/g, '');
-        if (v.length > 4) v = v.slice(0, 4) + '.' + v.slice(4);
-        if (v.length > 7) v = v.slice(0, 7) + '.' + v.slice(7);
-        input.value = v;
-    }
-
     function calcTotal() {
-        // Date
-        let d1Str = document.getElementById('checkIn').value;
-        let d2Str = document.getElementById('checkOut').value;
-        let nights = 0;
-        if (d1Str.length === 10 && d2Str.length === 10) {
-            const d1 = new Date(d1Str.replace(/\./g, '-'));
-            const d2 = new Date(d2Str.replace(/\./g, '-'));
-            if (d2 > d1) { nights = Math.ceil(Math.abs(d2 - d1) / (1000 * 60 * 60 * 24)); }
-        }
-        document.getElementById('nights').value = nights;
+        let nights = parseFloat(document.getElementById('nights').value) || 0;
 
         // Accom
         const forAdlQty = parseFloat(document.getElementById('forAdlQty').value) || 0;
         const forAdlPrice = parseFloat(document.getElementById('forAdlPrice').value) || 0;
         const forChdQty = parseFloat(document.getElementById('forChdQty').value) || 0;
         const forChdPrice = parseFloat(document.getElementById('forChdPrice').value) || 0;
-        const monAdlQty = parseFloat(document.getElementById('monAdlQty').value) || 0;
-        const monAdlPrice = parseFloat(document.getElementById('monAdlPrice').value) || 0;
+        const stQty = parseFloat(document.getElementById('staffQty').value) || 0;
+        const stPrice = parseFloat(document.getElementById('staffPrice').value) || 0;
         
-        const accomPerNight = (forAdlQty * forAdlPrice) + (forChdQty * forChdPrice) + (monAdlQty * monAdlPrice);
+        const accomPerNight = (forAdlQty * forAdlPrice) + (forChdQty * forChdPrice) + (stQty * stPrice);
         const totalAccom = accomPerNight * nights;
 
         // Food
-        const totalPeople = forAdlQty + forChdQty + monAdlQty;
-        const bfTotal = (parseFloat(document.getElementById('bfQty').value)||0) * (parseFloat(document.getElementById('bfPrice').value)||0) * totalPeople;
-        const lnTotal = (parseFloat(document.getElementById('lnQty').value)||0) * (parseFloat(document.getElementById('lnPrice').value)||0) * totalPeople;
-        const dnTotal = (parseFloat(document.getElementById('dnQty').value)||0) * (parseFloat(document.getElementById('dnPrice').value)||0) * totalPeople;
+        const totalPeople = forAdlQty + forChdQty + stQty;
+        const bfTotal = (parseFloat(document.getElementById('bfPrice').value)||0) * totalPeople;
+        const lnTotal = (parseFloat(document.getElementById('lnPrice').value)||0) * totalPeople;
+        const dnTotal = (parseFloat(document.getElementById('dnPrice').value)||0) * totalPeople;
         const grandFood = bfTotal + lnTotal + dnTotal;
 
         // Extras
@@ -245,52 +292,66 @@
         } else if (type === 'gh') {
             const val = document.getElementById('newGHInput').value;
             if (val) { guesthouses.push(val); localStorage.setItem('np_guesthouses', JSON.stringify(guesthouses)); document.getElementById('newGHInput').value = ''; renderDropdowns(); }
+        } else if (type === 'type') {
+            const val = document.getElementById('newTypeInput').value;
+            if (val) { accomTypes.push(val); localStorage.setItem('np_gh_types', JSON.stringify(accomTypes)); document.getElementById('newTypeInput').value = ''; renderDropdowns(); }
         }
     }
 
     function renderDropdowns() {
         const tripSel = document.getElementById('tripSelect');
         const ghSel = document.getElementById('ghSelect');
+        const typeSel = document.getElementById('accomType');
         const filterSel = document.getElementById('filterGH');
         
         const currTrip = tripSel.value;
         const currGH = ghSel.value;
+        const currType = typeSel.value;
         const currFilter = filterSel.value;
 
-        tripSel.innerHTML = ''; ghSel.innerHTML = ''; 
+        tripSel.innerHTML = ''; ghSel.innerHTML = ''; typeSel.innerHTML = '';
         filterSel.innerHTML = '<option value="ALL">Бүх GH</option>';
         
-        trips.forEach(t => { let opt = document.createElement('option'); opt.value = t; opt.innerHTML = t; tripSel.appendChild(opt); });
+        trips.forEach(t => { tripSel.add(new Option(t, t)); });
         guesthouses.forEach(h => { 
-            let opt = document.createElement('option'); opt.value = h; opt.innerHTML = h; ghSel.appendChild(opt);
-            let filterOpt = document.createElement('option'); filterOpt.value = h; filterOpt.innerHTML = h; filterSel.appendChild(filterOpt);
+            ghSel.add(new Option(h, h)); 
+            filterSel.add(new Option(h, h)); 
         });
+        accomTypes.forEach(t => { typeSel.add(new Option(t, t)); });
 
         if(currTrip) tripSel.value = currTrip;
-        if(currGH) ghSel.value = currGH;
+        if(currGH) { ghSel.value = currGH; }
+        if(currType) typeSel.value = currType;
         if(currFilter) filterSel.value = currFilter;
+        
+        suggestGHPrices();
     }
 
     function saveBooking() {
         const editId = document.getElementById('editId').value;
+        const ghName = document.getElementById('ghSelect').value;
+        const typeName = document.getElementById('accomType').value;
+        
+        // Save ALL Prices
+        saveCurrentGHPrices(ghName, typeName);
+
         const data = {
             id: editId ? parseInt(editId) : Date.now(),
             trip: document.getElementById('tripSelect').value,
-            gh: document.getElementById('ghSelect').value,
+            gh: ghName,
             checkIn: document.getElementById('checkIn').value,
             checkOut: document.getElementById('checkOut').value,
             nights: document.getElementById('nights').value,
             
-            accomType: document.getElementById('accomType').value,
-            roomConfig: document.getElementById('roomConfig').value,
+            accomType: typeName,
             
             forAdlQty: document.getElementById('forAdlQty').value, forAdlPrice: document.getElementById('forAdlPrice').value,
             forChdQty: document.getElementById('forChdQty').value, forChdPrice: document.getElementById('forChdPrice').value,
-            monAdlQty: document.getElementById('monAdlQty').value, monAdlPrice: document.getElementById('monAdlPrice').value,
+            stQty: document.getElementById('staffQty').value, stPrice: document.getElementById('staffPrice').value,
             
-            bfQty: document.getElementById('bfQty').value, bfPrice: document.getElementById('bfPrice').value,
-            lnQty: document.getElementById('lnQty').value, lnPrice: document.getElementById('lnPrice').value,
-            dnQty: document.getElementById('dnQty').value, dnPrice: document.getElementById('dnPrice').value,
+            bfPrice: document.getElementById('bfPrice').value,
+            lnPrice: document.getElementById('lnPrice').value,
+            dnPrice: document.getElementById('dnPrice').value,
             
             extraName: document.getElementById('extraName').value,
             extraPrice: document.getElementById('extraPrice').value,
@@ -301,21 +362,16 @@
             paidDate: document.getElementById('paidDate').value
         };
 
-        if (editId) {
-            const index = bookings.findIndex(b => b.id == editId);
-            if (index !== -1) bookings[index] = data;
-        } else {
-            bookings.push(data);
-        }
+        if (editId) { let idx = bookings.findIndex(b => b.id == editId); if (idx !== -1) bookings[idx] = data; } 
+        else { bookings.push(data); }
 
-        localStorage.setItem('np_gh_bookings', JSON.stringify(bookings));
+        localStorage.setItem('np_gh_bookings_v3', JSON.stringify(bookings));
         cancelEdit();
         renderTable();
     }
 
     function editBooking(id) {
-        const b = bookings.find(item => item.id == id);
-        if (!b) return;
+        const b = bookings.find(item => item.id == id); if (!b) return;
 
         document.getElementById('editId').value = b.id;
         document.getElementById('tripSelect').value = b.trip;
@@ -324,16 +380,20 @@
         document.getElementById('checkOut').value = b.checkOut;
         document.getElementById('nights').value = b.nights;
         
+        // Ensure type exists
+        if(!accomTypes.includes(b.accomType)) {
+            let opt = new Option(b.accomType, b.accomType);
+            document.getElementById('accomType').add(opt);
+        }
         document.getElementById('accomType').value = b.accomType;
-        document.getElementById('roomConfig').value = b.roomConfig;
         
         document.getElementById('forAdlQty').value = b.forAdlQty; document.getElementById('forAdlPrice').value = b.forAdlPrice;
         document.getElementById('forChdQty').value = b.forChdQty; document.getElementById('forChdPrice').value = b.forChdPrice;
-        document.getElementById('monAdlQty').value = b.monAdlQty; document.getElementById('monAdlPrice').value = b.monAdlPrice;
+        document.getElementById('staffQty').value = b.stQty; document.getElementById('staffPrice').value = b.stPrice;
         
-        document.getElementById('bfQty').value = b.bfQty; document.getElementById('bfPrice').value = b.bfPrice;
-        document.getElementById('lnQty').value = b.lnQty; document.getElementById('lnPrice').value = b.lnPrice;
-        document.getElementById('dnQty').value = b.dnQty; document.getElementById('dnPrice').value = b.dnPrice;
+        document.getElementById('bfPrice').value = b.bfPrice || "";
+        document.getElementById('lnPrice').value = b.lnPrice || "";
+        document.getElementById('dnPrice').value = b.dnPrice || "";
         
         document.getElementById('extraName').value = b.extraName;
         document.getElementById('extraPrice').value = b.extraPrice;
@@ -347,24 +407,23 @@
         document.getElementById('saveBtn').className = "btn-update";
         document.getElementById('cancelBtn').style.display = "inline-block";
         document.getElementById('bookingFormCard').classList.add('edit-mode');
-        document.getElementById('formTitle').innerText = "4. Guest House Захиалга (Засах)";
         document.getElementById('bookingFormCard').scrollIntoView({ behavior: 'smooth' });
     }
 
     function cancelEdit() {
         const inputs = document.querySelectorAll('#bookingFormCard input');
         inputs.forEach(i => i.value = '');
-        document.getElementById('nights').value = 0;
+        document.getElementById('nights').value = 1;
         document.getElementById('grandTotal').innerText = '0';
-        document.getElementById('extraPrice').value = 0;
-        document.getElementById('discount').value = 0;
+        document.getElementById('staffQty').value = 2;
+        
+        suggestGHPrices();
         
         document.getElementById('editId').value = "";
         document.getElementById('saveBtn').innerText = "ХАДГАЛАХ";
         document.getElementById('saveBtn').className = "btn-save";
         document.getElementById('cancelBtn').style.display = "none";
         document.getElementById('bookingFormCard').classList.remove('edit-mode');
-        document.getElementById('formTitle').innerText = "4. Guest House Захиалга";
     }
 
     function renderTable() {
@@ -378,39 +437,30 @@
 
         bookings.forEach((b) => {
             if (filterGH !== "ALL" && b.gh !== filterGH) return;
-            
-            if (filterMonth) {
-                let checkInDash = b.checkIn.replace(/\./g, '-');
-                if (!checkInDash.startsWith(filterMonth)) return;
-            }
+            if (filterMonth && !b.checkIn.startsWith(filterMonth)) return;
 
             let row = tbody.insertRow();
             
+            // Calc Subtotals
+            let accomT = ((b.forAdlQty*b.forAdlPrice)+(b.forChdQty*b.forChdPrice)+(b.stQty*b.stPrice)) * b.nights;
+            let foodT = ((parseFloat(b.bfPrice)||0)+(parseFloat(b.lnPrice)||0)+(parseFloat(b.dnPrice)||0)) * (parseInt(b.forAdlQty)+parseInt(b.forChdQty)+parseInt(b.stQty));
+
             row.innerHTML = `
                 <td>
                     <button class="btn-edit" onclick="editBooking(${b.id})">Зас</button>
                     <button class="btn-delete" onclick="deleteBooking(${b.id})">X</button>
                 </td>
-                
                 <td class="info-cell"><b>${b.trip}</b><br>${b.gh}</td>
+                <td class="info-cell">${b.accomType}</td>
+                <td class="info-cell">${b.checkIn}<br><b>${b.nights} хон</b></td>
                 
-                <td class="info-cell" style="text-align:center">${b.accomType}<br><span class="room-tag">${b.roomConfig}</span></td>
+                <td>${b.forAdlQty}</td> <td>${b.forChdQty}</td> <td>${b.stQty}</td>
                 
-                <td class="info-cell">${b.checkIn}<br>${b.checkOut}<br><b>${b.nights} хон</b></td>
-                
-                <td>${b.forAdlQty}</td> <td class="col-money">${parseInt(b.forAdlPrice).toLocaleString()}</td>
-                <td>${b.forChdQty}</td> <td class="col-money">${parseInt(b.forChdPrice).toLocaleString()}</td>
-                <td>${b.monAdlQty}</td> <td class="col-money">${parseInt(b.monAdlPrice).toLocaleString()}</td>
-                
-                <td class="date-cell">BF:${b.bfQty} LN:${b.lnQty} DN:${b.dnQty}</td>
-                <td class="col-money">${((b.bfQty*b.bfPrice)+(b.lnQty*b.lnPrice)+(b.dnQty*b.dnPrice)).toLocaleString()}</td>
-                
-                <td class="date-cell">${b.extraName}<br>${b.extraPrice}₮<br><span style="color:red">-${b.discount}</span></td>
+                <td class="col-money">${foodT.toLocaleString()}</td>
+                <td class="info-cell">${b.extraName}<br>${b.extraPrice}</td>
                 
                 <td class="col-total">${b.grandTotal}</td>
-                
-                <td class="date-cell">Н: ${b.invDate}<br>Т: ${b.paidDate}</td>
-            `;
+                <td class="date-cell">Н: ${b.invDate || '-'}<br>Т: ${b.paidDate || '-'}</td>`;
         });
     }
 
@@ -419,7 +469,7 @@
             const index = bookings.findIndex(b => b.id == id);
             if (index > -1) {
                 bookings.splice(index, 1);
-                localStorage.setItem('np_gh_bookings', JSON.stringify(bookings));
+                localStorage.setItem('np_gh_bookings_v3', JSON.stringify(bookings));
                 renderTable();
             }
         }
