@@ -2,7 +2,8 @@
 <html lang="mn">
 <head>
     <meta charset="UTF-8">
-    <title>Нэгдсэн Тайлан (Final)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Нэгдсэн Тайлан (Final Summary)</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f6; padding: 20px; color: #333; }
         .container { max-width: 100%; margin: 0 auto; }
@@ -74,7 +75,7 @@
                 <select id="tripSelect" onchange="generateReport()"><option value="">-- Аялал сонгоно уу --</option></select>
             </div>
             <div>
-                <button class="btn-copy" onclick="copyAndOpenSheets()">GOOGLE SHEETS ХУУЛАХ</button>
+                <button class="btn-copy" onclick="copyAndOpenSheets()">📋 EXCEL / SHEETS ХУУЛАХ</button>
             </div>
         </div>
 
@@ -86,14 +87,14 @@
                     </tr>
                     <tr>
                         <th style="width:80px;">Огноо</th>
-                        <th style="width:110px;">Үйлчилгээний Төрөл</th>
+                        <th style="width:110px;">Төрөл</th>
                         <th style="width:150px;">Газрын Нэр</th>
-                        <th>Дэлгэрэнгүй (Өрөө / Меню / Чиглэл)</th>
-                        <th>Хүний Тоо</th>
-                        <th>Хоолны Мэдээлэл</th>
-                        <th>Бусад (Орчуулагч / Нэмэлт)</th>
+                        <th>Дэлгэрэнгүй (Өрөө / Меню / Унаа)</th>
+                        <th>Хүний Тоо (Pax)</th>
+                        <th>Хоол & Бусад</th>
+                        <th>Орчуулагч / Жолооч</th>
                         <th>Нийт Дүн</th>
-                        <th>Төлбөрийн Байдал</th>
+                        <th>Төлбөр</th>
                     </tr>
                 </thead>
                 <tbody id="tbody"></tbody>
@@ -126,13 +127,6 @@
     // Helper: Number Format
     const fmt = (num) => num ? parseInt(num).toLocaleString() : '0';
 
-    // Helper: Pax Formatter (Hide kids if 0)
-    function formatPax(adl, chd, labelAdl="Том", labelChd="Хүүхэд") {
-        let s = `${labelAdl}: ${adl}`;
-        if(parseInt(chd) > 0) s += `, ${labelChd}: ${chd}`;
-        return s;
-    }
-
     window.onload = function() {
         let sel = document.getElementById('tripSelect');
         trips.forEach(t => sel.add(new Option(t, t)));
@@ -159,69 +153,59 @@
         tripTitleRow.style.display = 'table-row';
         document.getElementById('tableTripTitle').innerText = "АЯЛЛЫН НЭР: " + tripName.toUpperCase();
 
-        // --- 1. HOTEL ---
+        // 1. HOTEL (v3)
         let hotels = JSON.parse(localStorage.getItem('np_hotel_pro_v3')) || [];
         hotels.forEach(x => {
             if(x.trip === tripName) {
                 let roomStr = "";
-                if(x.rooms) x.rooms.forEach(r => roomStr += `${r.type} ${r.count}ш (${fmt(r.price)}), `);
+                if(x.rooms) x.rooms.forEach(r => roomStr += `${r.type} x${r.count}, `);
                 
-                let foodStr = "";
-                if(x.bfQty>0) foodStr += `Өглөө: ${x.bfQty}ш x${fmt(x.bfPrice)} <br>`;
-                if(x.lnQty>0) foodStr += `Өдөр: ${x.lnQty}ш x${fmt(x.lnPrice)} <br>`;
-                if(x.dnQty>0) foodStr += `Орой: ${x.dnQty}ш x${fmt(x.dnPrice)}`;
-
+                let foodStr = `BF:${fmt(x.bfPrice)}, LN:${fmt(x.lnPrice)}, DN:${fmt(x.dnPrice)}`;
                 let cost = parseFloat(x.grandTotal.replace(/,/g,'')) || 0;
                 grandTotal += cost;
+                // Simple Paid Logic: If Paid Date exists, assume full paid (or you can add partial logic later)
                 if(x.paidDate) paidTotal += cost;
 
                 allItems.push({
                     date: x.checkIn,
-                    cat: "ЗОЧИД БУУДАЛ",
+                    cat: "HOTEL",
                     css: "row-hotel",
                     name: x.hotel,
-                    desc: roomStr,
-                    pax: `Нийт: ${x.paxCount}, Хоног: ${x.nights}`,
+                    desc: roomStr + `(${x.nights} хоног)`,
+                    pax: `Total: ${x.paxCount}`,
                     food: foodStr,
-                    extra: `${x.extraName || '-'} (${fmt(x.extraPrice)}) <br> Хөнгөлөлт: -${fmt(x.discount)}`,
+                    guide: `-`,
                     cost: cost,
-                    status: `Нэх: ${x.invDate} <br> Төл: ${x.paidDate}`
+                    status: `Нэх: ${x.invDate || '-'} <br> Төл: ${x.paidDate || '-'}`
                 });
             }
         });
 
-        // --- 2. CAMP ---
-        let camps = JSON.parse(localStorage.getItem('np_camp_compact_v2')) || [];
+        // 2. CAMP (v3)
+        let camps = JSON.parse(localStorage.getItem('np_camp_pro_v3')) || [];
         camps.forEach(x => {
             if(x.trip === tripName) {
-                let foodStr = `Өглөө: ${x.bfQty} / Өдөр: ${x.lnQty} / Орой: ${x.dnQty}`;
-                
                 let cost = parseFloat(x.grandTotal.replace(/,/g,'')) || 0;
                 grandTotal += cost;
                 if(x.paidDate) paidTotal += cost;
 
-                // Fix Pax String
-                let paxStr = `Гадаад: ${x.forAdlQty}`;
-                if(x.forChdQty > 0) paxStr += `/${x.forChdQty}хүү`;
-                if(x.monAdlQty > 0) paxStr += `<br> Монгол: ${x.monAdlQty}`;
-
                 allItems.push({
                     date: x.checkIn,
-                    cat: "ЖУУЛЧНЫ БААЗ",
+                    cat: "CAMP",
                     css: "row-camp",
                     name: x.camp,
-                    desc: `${x.accomType} (${x.roomConfig})`,
-                    pax: paxStr,
-                    food: foodStr,
-                    extra: `${x.extraName || '-'} (${fmt(x.extraPrice)})`,
+                    desc: `${x.roomType || 'Standard'} (${x.nights} хоног)`,
+                    pax: `F:${x.faQty}, C:${x.fcQty}, S:${x.stQty}`,
+                    food: `BF:${fmt(x.bfPrice)}, LN:${fmt(x.lnPrice)}, DN:${fmt(x.dnPrice)}`,
+                    guide: `-`,
                     cost: cost,
-                    status: `Нэх: ${x.invDate} <br> Төл: ${x.paidDate}`
+                    status: `Нэх: ${x.invDate || '-'} <br> Төл: ${x.paidDate || '-'}`
                 });
             }
         });
 
-        // --- 3. RESTAURANT ---
-        let rests = JSON.parse(localStorage.getItem('np_restaurant_v1')) || [];
+        // 3. RESTAURANT (v3)
+        let rests = JSON.parse(localStorage.getItem('np_restaurant_v3')) || [];
         rests.forEach(x => {
             if(x.trip === tripName) {
                 let cost = parseFloat(x.grandTotal.replace(/,/g,'')) || 0;
@@ -230,48 +214,44 @@
 
                 allItems.push({
                     date: x.date,
-                    cat: "РЕСТОРАН",
+                    cat: "RESTAURANT",
                     css: "row-rest",
                     name: x.restaurant,
-                    desc: `Меню: ${x.menuName} (${fmt(x.menuPrice)})`,
-                    pax: `Гадаад: ${x.paxForeign}, Монгол: ${x.paxMongol}`,
-                    food: "Меню захиалга",
-                    extra: `Орчуулагч: ${x.guideName} <br> Утас: ${x.guidePhone}`,
+                    desc: `${x.menuName} (${fmt(x.menuPrice)})`,
+                    pax: `F:${x.paxForeign}, M:${x.paxMongol}`,
+                    food: `-`,
+                    guide: `${x.guideName}<br>${x.guidePhone}`,
                     cost: cost,
-                    status: `Нэх: ${x.invDate} <br> Төл: ${x.paidDate}`
+                    status: `Нэх: ${x.invDate || '-'} <br> Төл: ${x.paidDate || '-'}`
                 });
             }
         });
 
-        // --- 4. GUEST HOUSE ---
-        let ghs = JSON.parse(localStorage.getItem('np_gh_bookings')) || [];
+        // 4. GUEST HOUSE (v3)
+        let ghs = JSON.parse(localStorage.getItem('np_gh_bookings_v3')) || [];
         ghs.forEach(x => {
             if(x.trip === tripName) {
                 let cost = parseFloat(x.grandTotal.replace(/,/g,'')) || 0;
                 grandTotal += cost;
                 if(x.paidDate) paidTotal += cost;
 
-                let paxStr = `Гад: ${x.forAdlQty}`;
-                if(x.forChdQty > 0) paxStr += `/${x.forChdQty}хүү`;
-                if(x.monAdlQty > 0) paxStr += `<br> Мон: ${x.monAdlQty}`;
-
                 allItems.push({
                     date: x.checkIn,
-                    cat: "ГЭСТ ХАУС",
+                    cat: "GUEST HOUSE",
                     css: "row-gh",
                     name: x.gh,
-                    desc: `${x.accomType} (${x.roomConfig})`,
-                    pax: paxStr,
-                    food: `Өглөө:${x.bfQty} / Өдөр:${x.lnQty} / Орой:${x.dnQty}`,
-                    extra: `${x.extraName} (${fmt(x.extraPrice)})`,
+                    desc: `${x.accomType} (${x.nights} хоног)`,
+                    pax: `F:${x.forAdlQty}, C:${x.forChdQty}, S:${x.stQty}`,
+                    food: `BF:${fmt(x.bfPrice)}, LN:${fmt(x.lnPrice)}, DN:${fmt(x.dnPrice)}`,
+                    guide: `-`,
                     cost: cost,
-                    status: `Нэх: ${x.invDate} <br> Төл: ${x.paidDate}`
+                    status: `Нэх: ${x.invDate || '-'} <br> Төл: ${x.paidDate || '-'}`
                 });
             }
         });
 
-        // --- 5. ATTRACTION ---
-        let attrs = JSON.parse(localStorage.getItem('np_attraction_v2')) || [];
+        // 5. ATTRACTION (v3)
+        let attrs = JSON.parse(localStorage.getItem('np_attraction_v3')) || [];
         attrs.forEach(x => {
             if(x.trip === tripName) {
                 let cost = parseFloat(x.total.replace(/,/g,'')) || 0;
@@ -280,20 +260,21 @@
 
                 allItems.push({
                     date: x.date,
-                    cat: "ҮЗВЭР",
+                    cat: "ATTRACTION",
                     css: "row-attr",
                     name: x.attr,
-                    desc: "Тасалбар",
-                    pax: formatPax(x.adlQty, x.chdQty),
-                    food: "-",
-                    extra: `Орчуулагч: ${x.guide} <br> Утас: ${x.phone}`,
+                    desc: `Time: ${x.time}`,
+                    pax: `Adl:${x.adlQty}, Chd:${x.chdQty}`,
+                    food: `-`,
+                    guide: `${x.guide}<br>${x.phone}`,
                     cost: cost,
-                    status: `Нэх: ${x.inv} <br> Төл: ${x.paid}`
+                    status: `Нэх: ${x.inv || '-'} <br> Төл: ${x.paid || '-'}`
                 });
             }
         });
 
-        // --- 6. TRANSPORT ---
+        // 6. TRANSPORT (Assume v2 structure exists or empty)
+        // If you have transport.html code, make sure it saves to 'np_transport_v2'
         let trans = JSON.parse(localStorage.getItem('np_transport_v2')) || [];
         trans.forEach(x => {
             if(x.trip === tripName) {
@@ -303,41 +284,40 @@
 
                 allItems.push({
                     date: x.date,
-                    cat: "ТЭЭВЭР",
+                    cat: "TRANSPORT",
                     css: "row-trans",
                     name: x.trans,
                     desc: `${x.type} - ${x.route}`,
-                    pax: formatPax(x.adlQty, x.chdQty),
-                    food: "-",
-                    extra: `Жолооч: ${x.guideName} (${x.guidePhone}) <br> <b>Зорчигчид:</b> <br> ${x.paxList}`,
+                    pax: `Adl:${x.adlQty}, Chd:${x.chdQty}`,
+                    food: `-`,
+                    guide: `${x.guideName}<br>${x.guidePhone}`,
                     cost: cost,
-                    status: `Нэх: ${x.inv} <br> Төл: ${x.paid}`
+                    status: `Нэх: ${x.inv || '-'} <br> Төл: ${x.paid || '-'}`
                 });
             }
         });
 
-        // --- 7. NOMAD ---
-        let nomads = JSON.parse(localStorage.getItem('np_nomad_v2')) || [];
+        // 7. NOMAD (v4)
+        let nomads = JSON.parse(localStorage.getItem('np_nomad_v4')) || [];
         nomads.forEach(x => {
             if(x.trip === tripName) {
                 let cost = parseFloat(x.total.replace(/,/g,'')) || 0;
                 grandTotal += cost;
                 if(x.paid) paidTotal += cost;
 
-                let horseStr = `Морь: ${parseInt(x.horsePax)+parseInt(x.horseGuide)} хүн (${x.horseDays} хоног)`;
-                let camelStr = (x.camelPax > 0) ? `<br>Тэмээ: ${x.camelPax} хүн` : "";
+                let rideStr = `Ride Pax:${x.ridePax}, Guide:${x.rideGuide} (${x.rideDays}d)`;
 
                 allItems.push({
                     date: x.inDate,
-                    cat: "МАЛЧИН АЙЛ",
+                    cat: "NOMAD",
                     css: "row-nomad",
                     name: x.nomad,
-                    desc: "Гэрт байрлах (" + x.days + " хоног)",
-                    pax: `Жуулчин: ${x.paxF} <br> Монгол: ${x.paxM}`,
-                    food: `Хоолны зардал: ${fmt(x.foodPrice)}`,
-                    extra: horseStr + camelStr + `<br> Нэмэлт: ${x.extraName}`,
+                    desc: `Ger Stay (${x.days} days)`,
+                    pax: `F:${x.paxF}, M:${x.paxM}`,
+                    food: `Price:${fmt(x.foodPrice)}, Freq:${x.foodFreq}`,
+                    guide: `${rideStr}<br>Guide:${x.guide}`,
                     cost: cost,
-                    status: `Нэх: ${x.inv} <br> Төл: ${x.paid}`
+                    status: `Нэх: ${x.inv || '-'} <br> Төл: ${x.paid || '-'}`
                 });
             }
         });
@@ -349,12 +329,12 @@
             let tr = document.createElement('tr');
             tr.innerHTML = `
                 <td class="${row.css}">${row.date}</td>
-                <td><b>${row.cat}</b></td>
+                <td style="font-weight:bold;">${row.cat}</td>
                 <td>${row.name}</td>
                 <td>${row.desc}</td>
                 <td>${row.pax}</td>
                 <td>${row.food}</td>
-                <td>${row.extra}</td>
+                <td>${row.guide}</td>
                 <td class="money-cell" style="font-weight:bold;">${row.cost.toLocaleString()}</td>
                 <td style="font-size:11px;">${row.status}</td>
             `;
@@ -370,8 +350,6 @@
 
     function copyAndOpenSheets() {
         const table = document.getElementById('masterTable');
-        
-        // Select and Copy
         const range = document.createRange();
         range.selectNode(table);
         window.getSelection().removeAllRanges();
@@ -379,12 +357,10 @@
         
         try {
             document.execCommand('copy');
-            // Open Google Sheets
             window.open('https://sheets.google.com/create', '_blank');
         } catch (err) {
-            alert('Copy failed. Please manually select and copy.');
+            alert('Copy failed.');
         }
-        
         window.getSelection().removeAllRanges();
     }
 </script>
